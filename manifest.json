@@ -1,0 +1,51 @@
+{
+  "name": "D&D 5E 人物卡生成器",
+  "short_name": "人物卡生成器",
+  "description": "基于 5E 不全书规则，输入姓名职业一键生成精美 D&D 人物卡",
+  "start_url": "index.html",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui", "window-controls-overlay"],
+  "orientation": "portrait",
+  "background_color": "#f5f0e8",
+  "theme_color": "#8b4513",
+  "lang": "zh-CN",
+  "dir": "auto",
+  "scope": "./",
+  "icons": [
+    {
+      "src": "icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512x512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-192x192-maskable.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "人物卡生成器主界面"
+    }
+  ],
+  "categories": ["entertainment", "games", "utilities"],
+  "prefer_related_applications": false
+}

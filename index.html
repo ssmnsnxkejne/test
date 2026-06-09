@@ -1,0 +1,3199 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>D&D 5E 人物卡生成器 | 5E 不全书</title>
+
+<!-- PWA Meta -->
+<meta name="description" content="基于 5E 不全书规则，输入姓名职业一键生成精美 D&D 5E 人物卡">
+<meta name="theme-color" content="#8b4513">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="人物卡生成器">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="format-detection" content="telephone=no">
+
+<!-- Apple Touch Icon (inline SVG via data URI) -->
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' fill='%238b4513' rx='32'/%3E%3Ctext x='96' y='132' font-size='120' text-anchor='middle' fill='%23f5f0e8' font-family='serif'%3E⚔%3C/text%3E%3C/svg%3E">
+
+<!-- Apple Splash Screen (uses theme-color as background) -->
+<meta name="apple-mobile-web-app-title" content="人物卡生成器">
+
+<!-- PWA Manifest -->
+<link rel="manifest" href="manifest.json">
+<style>
+:root {
+  --bg: #f5f0e8;
+  --bg-card: #fffef9;
+  --bg-input: #faf7f0;
+  --text: #2c2416;
+  --text-secondary: #6b5e4a;
+  --border: #d4c5a9;
+  --accent: #8b4513;
+  --accent-light: #a0522d;
+  --gold: #c9a84c;
+  --gold-light: #e8d48b;
+  --parchment: #f5e6c8;
+  --parchment-dark: #e8d5a3;
+  --danger: #8b1a1a;
+  --success: #2d6a2d;
+  --magic: #6a0dad;
+  --magic-light: #9b59b6;
+  --shadow: 0 4px 20px rgba(0,0,0,0.08);
+  --shadow-lg: 0 12px 40px rgba(0,0,0,0.12);
+  --radius: 12px;
+  --radius-lg: 20px;
+  --font-title: 'Georgia', 'Times New Roman', serif;
+  --font-body: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+[data-theme="dark"] {
+  --bg: #1a1410;
+  --bg-card: #231e18;
+  --bg-input: #2a231b;
+  --text: #e8dcc8;
+  --text-secondary: #a89878;
+  --border: #4a3d2a;
+  --accent: #c9a84c;
+  --accent-light: #e8d48b;
+  --gold: #d4b85c;
+  --gold-light: #f0e0a0;
+  --parchment: #2a231b;
+  --parchment-dark: #1a1410;
+  --shadow: 0 4px 20px rgba(0,0,0,0.3);
+  --shadow-lg: 0 12px 40px rgba(0,0,0,0.5);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: var(--font-body);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  background-image:
+    radial-gradient(ellipse at 20% 20%, rgba(139,69,19,0.03) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 80%, rgba(201,168,76,0.04) 0%, transparent 50%);
+  transition: background 0.3s, color 0.3s;
+}
+
+/* Theme Toggle */
+.theme-toggle-wrap {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 1000;
+}
+.theme-toggle {
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  background: var(--bg-card);
+  cursor: pointer;
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: var(--shadow);
+}
+.theme-toggle:hover {
+  transform: scale(1.1);
+  border-color: var(--accent);
+}
+.theme-toggle:active { transform: scale(0.95); }
+
+/* Header */
+.header {
+  text-align: center;
+  padding: 48px 20px 32px;
+}
+.header-logo {
+  font-family: var(--font-title);
+  font-size: 32px;
+  font-weight: bold;
+  color: var(--accent);
+  letter-spacing: 2px;
+  margin-bottom: 8px;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.header-sub {
+  font-size: 14px;
+  color: var(--text-secondary);
+  letter-spacing: 1px;
+}
+.header-share {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+
+/* Container */
+.container {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 0 16px 60px;
+}
+
+/* Section */
+.section {
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  padding: 24px 20px;
+  margin-bottom: 16px;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  transition: all 0.3s;
+  position: relative;
+  overflow: hidden;
+}
+.section::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--accent), var(--gold), var(--accent));
+  opacity: 0.6;
+}
+.section-title {
+  font-family: var(--font-title);
+  font-size: 18px;
+  color: var(--accent);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.section-title .icon { font-size: 22px; }
+
+/* Form */
+.form-group {
+  margin-bottom: 14px;
+}
+.form-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.form-input, .form-select {
+  width: 100%;
+  padding: 12px 16px;
+  background: var(--bg-input);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 16px;
+  color: var(--text);
+  font-family: var(--font-body);
+  transition: all 0.3s;
+  appearance: none;
+  -webkit-appearance: none;
+}
+.form-input:focus, .form-select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(139,69,19,0.1);
+}
+.form-select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238b4513' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 16px center;
+  padding-right: 40px;
+}
+.form-hint {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-top: 4px;
+  font-style: italic;
+}
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 28px;
+  border: none;
+  border-radius: var(--radius);
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  font-family: var(--font-body);
+  letter-spacing: 0.5px;
+  position: relative;
+  overflow: hidden;
+}
+.btn-primary {
+  width: 100%;
+  background: linear-gradient(135deg, var(--accent), var(--accent-light));
+  color: #fff;
+  box-shadow: 0 4px 15px rgba(139,69,19,0.3);
+  font-size: 18px;
+  padding: 16px 28px;
+}
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(139,69,19,0.4);
+}
+.btn-primary:active {
+  transform: translateY(0);
+}
+.btn-outline {
+  width: 100%;
+  background: transparent;
+  border: 2px solid var(--accent);
+  color: var(--accent);
+  margin-top: 12px;
+}
+.btn-outline:hover {
+  background: rgba(139,69,19,0.06);
+}
+
+/* Character Card */
+.character-card-wrap {
+  display: none;
+}
+.character-card-wrap.active {
+  display: block;
+  animation: cardAppear 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes cardAppear {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.character-card {
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  border: 2px solid var(--border);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+  position: relative;
+}
+
+/* Card Header */
+.card-header {
+  background: linear-gradient(135deg, var(--parchment), var(--parchment-dark));
+  padding: 24px 20px;
+  text-align: center;
+  border-bottom: 2px solid var(--border);
+  position: relative;
+}
+.card-header::after {
+  content: '';
+  position: absolute;
+  bottom: -1px; left: 10%; right: 10%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+}
+.card-class-icon {
+  font-size: 48px;
+  margin-bottom: 8px;
+  display: block;
+  animation: float 3s ease-in-out infinite;
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+.card-name {
+  font-family: var(--font-title);
+  font-size: 28px;
+  font-weight: bold;
+  color: var(--accent);
+  letter-spacing: 2px;
+  margin-bottom: 4px;
+}
+.card-subtitle {
+  font-size: 14px;
+  color: var(--text-secondary);
+  letter-spacing: 1px;
+}
+
+/* Card Body */
+.card-body {
+  padding: 20px;
+}
+
+/* Ability Scores */
+.ability-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+  margin-bottom: 20px;
+}
+.ability-item {
+  text-align: center;
+  padding: 10px 4px;
+  background: var(--bg-input);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  transition: all 0.3s;
+}
+.ability-item:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent);
+  box-shadow: var(--shadow);
+}
+.ability-name {
+  font-size: 11px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+.ability-score {
+  font-family: var(--font-title);
+  font-size: 22px;
+  font-weight: bold;
+  color: var(--accent);
+}
+.ability-mod {
+  font-size: 11px;
+  font-weight: 600;
+}
+.ability-mod.positive { color: var(--success); }
+.ability-mod.negative { color: var(--danger); }
+
+/* Stats Row */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.stat-item {
+  text-align: center;
+  padding: 14px 8px;
+  background: var(--bg-input);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+.stat-label {
+  font-size: 11px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+}
+.stat-value {
+  font-family: var(--font-title);
+  font-size: 20px;
+  font-weight: bold;
+  color: var(--accent);
+}
+
+/* Info Grid */
+.info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.info-item {
+  padding: 12px;
+  background: var(--bg-input);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+.info-item.full { grid-column: 1 / -1; }
+.info-label {
+  font-size: 11px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+}
+.info-value {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+/* Skills */
+.skills-section {
+  margin-bottom: 20px;
+}
+.skills-title {
+  font-family: var(--font-title);
+  font-size: 16px;
+  color: var(--accent);
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+.skills-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+.skill-tag {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: var(--bg-input);
+  border-radius: 8px;
+  font-size: 13px;
+  border: 1px solid var(--border);
+}
+.skill-tag .skill-bonus {
+  font-weight: bold;
+  color: var(--accent);
+  min-width: 24px;
+  text-align: center;
+}
+.skill-tag.proficient {
+  border-color: var(--gold);
+  background: rgba(201,168,76,0.08);
+}
+
+/* Features */
+.features-section {
+  margin-bottom: 20px;
+}
+.features-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.feature-item {
+  padding: 10px 14px;
+  background: var(--bg-input);
+  border-radius: 8px;
+  font-size: 13px;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  line-height: 1.5;
+}
+
+/* Equipment */
+.equip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.equip-tag {
+  padding: 6px 12px;
+  background: var(--bg-input);
+  border-radius: 20px;
+  font-size: 12px;
+  border: 1px solid var(--border);
+}
+
+/* Footer */
+.card-footer {
+  padding: 16px 20px;
+  border-top: 1px solid var(--border);
+  text-align: center;
+}
+.card-footer-text {
+  font-size: 11px;
+  color: var(--text-secondary);
+  letter-spacing: 1px;
+}
+
+/* Toast */
+.toast {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  background: var(--accent);
+  color: #fff;
+  padding: 12px 24px;
+  border-radius: 50px;
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+  z-index: 2000;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  white-space: nowrap;
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+
+/* Responsive */
+@media (max-width: 360px) {
+  .ability-grid { grid-template-columns: repeat(3, 1fr); }
+  .stats-row { grid-template-columns: 1fr; }
+}
+
+/* Print */
+@media print {
+  .theme-toggle-wrap, #generator-form, .btn-outline, .toast { display: none !important; }
+  .character-card-wrap { display: block !important; }
+  body { background: white; }
+}
+
+/* Spell Display Styles */
+.spell-slots {
+  margin-bottom: 12px;
+  padding: 12px;
+  background: var(--bg-input);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+.spell-slot-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.spell-slot-badge {
+  padding: 5px 12px;
+  background: var(--accent);
+  color: #fff;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.spells-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 600px;
+  overflow-y: auto;
+}
+.spell-item {
+  padding: 10px 14px;
+  background: var(--bg-input);
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  transition: all 0.2s;
+}
+.spell-item.concentration {
+  border-left-color: #6a0dad;
+}
+.spell-item.ritual {
+  border-left-color: #2d6a2d;
+}
+.spell-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+.spell-level-badge {
+  padding: 2px 8px;
+  background: var(--accent);
+  color: #fff;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.spell-item.concentration .spell-level-badge {
+  background: #6a0dad;
+}
+.spell-item.ritual .spell-level-badge {
+  background: #2d6a2d;
+}
+.spell-name {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--text);
+  flex: 1;
+  min-width: 80px;
+}
+.spell-school {
+  font-size: 11px;
+  color: var(--text-secondary);
+  background: rgba(139,69,19,0.1);
+  padding: 2px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+.spell-tag {
+  display: inline-block;
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+.conc-tag {
+  background: #6a0dad;
+  color: #fff;
+}
+.rit-tag {
+  background: #2d6a2d;
+  color: #fff;
+}
+.spell-info {
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+.spell-meta {
+  opacity: 0.7;
+}
+.spell-desc {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+[data-theme="dark"] .spell-school {
+  background: rgba(201,168,76,0.15);
+  color: #c9a84c;
+}
+
+/* ===== Collapsible Sections ===== */
+.collapsible-section {
+  margin-bottom: 14px;
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  transition: all 0.3s;
+}
+.collapsible-section.expanded {
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+}
+.collapsible-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  background: var(--bg-input);
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.2s;
+}
+.collapsible-header:active {
+  background: var(--parchment);
+}
+.collapsible-header .section-title {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.collapsible-header .section-badge {
+  font-size: 11px;
+  background: var(--accent);
+  color: #fff;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-weight: 600;
+}
+.collapsible-arrow {
+  font-size: 12px;
+  color: var(--text-secondary);
+  transition: transform 0.3s ease;
+  flex-shrink: 0;
+}
+.collapsible-section.expanded .collapsible-arrow {
+  transform: rotate(180deg);
+}
+.collapsible-body {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.4s ease, padding 0.3s;
+}
+.collapsible-section.expanded .collapsible-body {
+  max-height: 2000px;
+}
+.collapsible-body-inner {
+  padding: 0 14px 14px;
+}
+
+/* Feature detail items */
+.feature-detail {
+  padding: 10px 12px;
+  margin-bottom: 6px;
+  background: var(--bg);
+  border-radius: 8px;
+  border-left: 3px solid var(--accent);
+  cursor: pointer;
+  transition: all 0.2s;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.feature-detail:active {
+  transform: scale(0.98);
+}
+.feature-detail-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+.feature-detail .fd-level {
+  background: var(--accent);
+  color: #fff;
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.feature-detail .fd-name {
+  font-weight: 700;
+  color: var(--text);
+  flex: 1;
+}
+.feature-detail .fd-expand {
+  font-size: 10px;
+  color: var(--text-secondary);
+  transition: transform 0.3s;
+}
+.feature-detail.open .fd-expand {
+  transform: rotate(180deg);
+}
+.feature-detail-desc {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.35s ease, margin 0.3s;
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+.feature-detail.open .feature-detail-desc {
+  max-height: 800px;
+  margin-top: 8px;
+}
+
+/* Equipment detail items */
+.equip-detail {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  margin: 3px;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  -webkit-tap-highlight-color: transparent;
+  white-space: nowrap;
+}
+.equip-detail:active {
+  transform: scale(0.95);
+  background: var(--parchment);
+}
+.equip-detail .ed-icon {
+  font-size: 11px;
+}
+.equip-tooltip {
+  display: none;
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--text);
+  color: var(--bg);
+  padding: 10px 18px;
+  border-radius: 12px;
+  font-size: 13px;
+  line-height: 1.5;
+  z-index: 1000;
+  max-width: 90vw;
+  text-align: center;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+  animation: tooltipIn 0.25s ease;
+}
+.equip-tooltip.show {
+  display: block;
+}
+@keyframes tooltipIn {
+  from { opacity: 0; transform: translateX(-50%) translateY(10px); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+/* Share link area */
+.share-section {
+  margin-top: 20px;
+  padding: 14px 16px;
+  background: var(--bg-input);
+  border-radius: var(--radius);
+  border: 1px dashed var(--border);
+  text-align: center;
+}
+.share-section .share-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+.share-url-box {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px;
+}
+.share-url-text {
+  flex: 1;
+  font-size: 11px;
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: left;
+  padding: 0 4px;
+}
+.share-copy-btn {
+  padding: 6px 14px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s;
+}
+.share-copy-btn:active {
+  background: var(--accent-light);
+}
+.share-copy-btn.copied {
+  background: var(--success);
+}
+
+[data-theme="dark"] .equip-tooltip {
+  background: #f5f0e8;
+  color: #2c2416;
+}
+</style>
+</head>
+<body>
+
+<!-- Theme Toggle -->
+<div class="theme-toggle-wrap">
+  <button class="theme-toggle" id="themeToggle" title="切换主题" aria-label="切换主题">
+    🌙
+  </button>
+</div>
+
+<!-- Header -->
+<header class="header">
+  <div class="header-logo">⚔️ 人物卡生成器</div>
+  <div class="header-sub">D&D 5E · 基于 5E 不全书</div>
+  <div class="header-share" style="margin-top:8px;display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;">
+    <span style="font-size:11px;color:var(--text-secondary);">📱 手机访问：</span>
+    <span id="topShareUrl" style="font-size:11px;color:var(--accent);background:var(--bg-input);padding:3px 8px;border-radius:6px;cursor:pointer;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" onclick="copyTopUrl()" title="点击复制链接">e943424c...b.app.codebuddy.work</span>
+  </div>
+</header>
+
+<!-- PWA Install Banner -->
+<div id="installBanner" style="display:none;">
+  <div style="display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;">
+    <span style="font-size:15px;">📲 将此应用安装到手机主屏幕</span>
+    <button id="installBtn" style="background:var(--accent);color:#fff;border:none;padding:8px 20px;border-radius:20px;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap;">立即安装</button>
+    <button id="dismissBanner" style="background:none;border:none;color:var(--text-secondary);font-size:18px;cursor:pointer;padding:4px 8px;">✕</button>
+  </div>
+</div>
+
+<!-- iOS Install Guide -->
+<div id="iosGuide" style="display:none;">
+  <div style="display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;text-align:center;">
+    <span style="font-size:14px;">🍎 点击 Safari 底部 <strong>分享</strong> → <strong>添加到主屏幕</strong></span>
+    <button id="dismissIos" style="background:none;border:none;color:var(--text-secondary);font-size:18px;cursor:pointer;padding:4px 8px;">✕</button>
+  </div>
+</div>
+
+<!-- Main Container -->
+<main class="container">
+
+  <!-- Generator Form -->
+  <div id="generator-form">
+    <!-- Basic Info -->
+    <div class="section">
+      <div class="section-title"><span class="icon">📜</span> 基础信息</div>
+      <div class="form-group">
+        <label class="form-label" for="charName">角色姓名</label>
+        <input type="text" id="charName" class="form-input" placeholder="输入你的角色名字..." maxlength="30">
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="charClass">职业</label>
+        <select id="charClass" class="form-select">
+          <option value="">-- 选择职业 --</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="charSubclass">子职业 / 范型</label>
+        <select id="charSubclass" class="form-select">
+          <option value="">-- 先选择职业 --</option>
+        </select>
+        <div class="form-hint" id="subclassHint"></div>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="charLevel">等级 (1-20)</label>
+        <input type="number" id="charLevel" class="form-input" min="1" max="20" value="1">
+      </div>
+    </div>
+
+    <!-- Origin -->
+    <div class="section">
+      <div class="section-title"><span class="icon">🌍</span> 角色起源</div>
+      <div class="form-group">
+        <label class="form-label" for="charRace">种族</label>
+        <select id="charRace" class="form-select">
+          <option value="">-- 选择种族 --</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="charBackground">背景</label>
+        <select id="charBackground" class="form-select">
+          <option value="">-- 选择背景 --</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="charAlignment">阵营</label>
+        <select id="charAlignment" class="form-select">
+          <option value="LG">守序善良 (Lawful Good)</option>
+          <option value="NG">中立善良 (Neutral Good)</option>
+          <option value="CG">混乱善良 (Chaotic Good)</option>
+          <option value="LN">守序中立 (Lawful Neutral)</option>
+          <option value="TN" selected>绝对中立 (True Neutral)</option>
+          <option value="CN">混乱中立 (Chaotic Neutral)</option>
+          <option value="LE">守序邪恶 (Lawful Evil)</option>
+          <option value="NE">中立邪恶 (Neutral Evil)</option>
+          <option value="CE">混乱邪恶 (Chaotic Evil)</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Generate Button -->
+    <button class="btn btn-primary" id="generateBtn">
+      ✨ 生成人物卡
+    </button>
+    <button class="btn btn-outline" id="randomBtn">
+      🎲 随机生成
+    </button>
+  </div>
+
+  <!-- Character Card -->
+  <div class="character-card-wrap" id="characterCardWrap">
+    <div class="character-card" id="characterCard">
+      <!-- Filled by JS -->
+    </div>
+    <button class="btn btn-outline" id="backBtn" style="margin-top:16px;">
+      ← 返回修改
+    </button>
+    <button class="btn btn-outline" id="shareBtn" style="margin-top:8px;">
+      📸 保存截图
+    </button>
+  </div>
+
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+// DATA: Classes, Subclasses, Races, Backgrounds
+// ============================================================
+
+const CLASS_DATA = {
+  barbarian: {
+    name: '野蛮人', icon: '🪓', hd: 12,
+    primary: ['力量', '体质'], saves: ['力量', '体质'],
+    skills: ['运动', '自然', '驯兽', '察觉', '求生', '威吓'],
+    skillCount: 2,
+    features: {
+      1: ['狂暴 (Rage)', '无甲防御 (Unarmored Defense)'],
+      2: ['鲁莽攻击 (Reckless Attack)', '危险感知 (Danger Sense)'],
+      3: ['原初道途 (Primal Path)'],
+      5: ['额外攻击 (Extra Attack)', '快速移动 (Fast Movement)'],
+      7: ['野性直觉 (Feral Instinct)'],
+      9: ['凶蛮重击 (Brutal Critical)'],
+      11: ['坚韧狂暴 (Relentless Rage)'],
+      15: ['持久狂暴 (Persistent Rage)'],
+      18: ['不屈勇武 (Indomitable Might)'],
+      20: ['原初斗士 (Primal Champion)']
+    }
+  },
+  bard: {
+    name: '吟游诗人', icon: '🎵', hd: 8,
+    primary: ['魅力', '敏捷'], saves: ['敏捷', '魅力'],
+    skills: ['体操', '隐匿', '奥秘', '历史', '自然', '宗教', '调查', '驯兽', '洞悉', '医药', '察觉', '求生', '欺瞒', '威吓', '表演', '游说'],
+    skillCount: 3,
+    features: {
+      1: ['诗人激励 (Bardic Inspiration)', '施法 (Spellcasting)'],
+      2: ['万事通 (Jack of All Trades)', '休憩曲 (Song of Rest)'],
+      3: ['诗人学院 (Bard College)', '专精 (Expertise)'],
+      5: ['激励提升 (Font of Inspiration)'],
+      6: ['反迷惑 (Countercharm)'],
+      10: ['魔法奥秘 (Magical Secrets)', '专精'],
+      20: ['超凡激励 (Superior Inspiration)']
+    }
+  },
+  cleric: {
+    name: '牧师', icon: '✝️', hd: 8,
+    primary: ['感知', '力量'], saves: ['感知', '魅力'],
+    skills: ['历史', '洞悉', '医药', '游说', '宗教'],
+    skillCount: 2,
+    features: {
+      1: ['施法 (Spellcasting)', '神授领域 (Divine Domain)'],
+      2:['引导神力 (Channel Divinity)'],
+      5:['摧毁亡灵 (Destroy Undead)'],
+      10:['神圣干预 (Divine Intervention)'],
+      20:['神圣干预强化']
+    }
+  },
+  druid: {
+    name: '德鲁伊', icon: '🌿', hd: 8,
+    primary: ['感知', '体质'], saves: ['智力', '感知'],
+    skills: ['奥秘', '驯兽', '洞悉', '医药', '自然', '察觉', '宗教', '求生'],
+    skillCount: 2,
+    features: {
+      1: ['施法 (Spellcasting)', '德鲁伊语 (Druidic)'],
+      2:['荒野形态 (Wild Shape)', '德鲁伊结社'],
+      18:['不老身躯 (Timeless Body)', '野兽施法 (Beast Spells)'],
+      20:['大德鲁伊 (Archdruid)']
+    }
+  },
+  fighter: {
+    name: '战士', icon: '⚔️', hd: 10,
+    primary: ['力量', '体质'], saves: ['力量', '体质'],
+    skills: ['体操', '驯兽', '运动', '历史', '洞悉', '威吓', '察觉', '求生'],
+    skillCount: 2,
+    features: {
+      1: ['战斗风格 (Fighting Style)', '回气 (Second Wind)'],
+      2:['动作如潮 (Action Surge)'],
+      3:['武术范型 (Martial Archetype)'],
+      5:['额外攻击 (Extra Attack)'],
+      9:['不屈 (Indomitable)'],
+      11:['额外攻击(2)'],
+      20:['额外攻击(3)']
+    }
+  },
+  monk: {
+    name: '武僧', icon: '👊', hd: 8,
+    primary: ['敏捷', '感知'], saves: ['力量', '敏捷'],
+    skills: ['体操', '运动', '历史', '洞悉', '宗教', '隐匿'],
+    skillCount: 2,
+    features: {
+      1: ['无甲防御', 'Martial Arts'],
+      2:['气 (Ki)', '无甲移动'],
+      3:['武僧宗派', '拨挡飞弹 (Deflect Missiles)'],
+      5:['额外攻击', '震慑拳 (Stunning Strike)'],
+      7:['反射闪避 (Evasion)', '心如止水 (Stillness of Mind)'],
+      10:['百病不侵 (Purity of Body)'],
+      14:['全向豁免熟练 (Diamond Soul)'],
+      18:['空灵体 (Empty Body)'],
+      20:['超凡入圣 (Perfect Self)']
+    }
+  },
+  paladin: {
+    name: '圣武士', icon: '🛡️', hd: 10,
+    primary: ['力量', '魅力'], saves: ['感知', '魅力'],
+    skills: ['运动', '洞悉', '威吓', '医药', '游说', '宗教'],
+    skillCount: 2,
+    features: {
+      1:['神圣感知 (Divine Sense)', '圣疗 (Lay on Hands)'],
+      2:['战斗风格', '施法', '至圣斩 (Divine Smite)'],
+      3:['圣誓 (Sacred Oath)', '神佑 (Divine Health)'],
+      5:['额外攻击'],
+      6:['守护灵光 (Aura of Protection)'],
+      10:['勇气灵光 (Aura of Courage)'],
+      11:['强化至圣斩 (Improved Divine Smite)'],
+      14:['净化之触 (Cleansing Touch)'],
+      20:['圣誓变身']
+    }
+  },
+  ranger: {
+    name: '游侠', icon: '🏹', hd: 10,
+    primary: ['敏捷', '感知'], saves: ['力量', '敏捷'],
+    skills: ['驯兽', '运动', '洞悉', '调查', '自然', '察觉', '隐匿', '求生'],
+    skillCount: 3,
+    features: {
+      1:['宿敌 (Favored Enemy)', '自然探索者 (Natural Explorer)'],
+      2:['战斗风格', '施法'],
+      3:['游侠范型'],
+      5:['额外攻击'],
+      8:['大地行走 (Land\'s Stride)'],
+      10:['遁术 (Hide in Plain Sight)'],
+      14:['无踪步 (Vanish)'],
+      18:['野性感官 (Feral Senses)'],
+      20:['屠灭者 (Foe Slayer)']
+    }
+  },
+  rogue: {
+    name: '游荡者', icon: '🗡️', hd: 8,
+    primary: ['敏捷', '智力'], saves: ['敏捷', '智力'],
+    skills: ['体操', '运动', '欺瞒', '洞悉', '威吓', '调查', '察觉', '表演', '游说', '手上功夫', '隐匿'],
+    skillCount: 4,
+    features: {
+      1:['偷袭 (Sneak Attack)', '专精', '盗贼黑话 (Thieves\' Cant)'],
+      2:['灵巧动作 (Cunning Action)'],
+      3:['游荡者范型'],
+      5:['直觉闪避 (Uncanny Dodge)'],
+      7:['反射闪避 (Evasion)'],
+      11:['可靠才能 (Reliable Talent)'],
+      14:['盲感 (Blindsense)'],
+      15:['滑溜心智 (Slippery Mind)'],
+      18:['难以捉摸 (Elusive)'],
+      20:['幸运一击 (Stroke of Luck)']
+    }
+  },
+  sorcerer: {
+    name: '术士', icon: '🔥', hd: 6,
+    primary: ['魅力', '体质'], saves: ['体质', '魅力'],
+    skills: ['奥秘', '欺瞒', '洞悉', '威吓', '游说', '宗教'],
+    skillCount: 2,
+    features: {
+      1:['施法', '术法起源 (Sorcerous Origin)'],
+      2:['魔力泉涌 (Font of Magic)', '超魔法 (Metamagic)'],
+      3:['超魔法选项'],
+      10:['额外超魔法'],
+      17:['额外超魔法'],
+      20:['术法恢复 (Sorcerous Restoration)']
+    }
+  },
+  warlock: {
+    name: '魔契师', icon: '👁️', hd: 8,
+    primary: ['魅力', '体质'], saves: ['感知', '魅力'],
+    skills: ['奥秘', '欺瞒', '历史', '威吓', '调查', '自然', '宗教'],
+    skillCount: 2,
+    features: {
+      1:['异界宗主 (Otherworldly Patron)', '契约魔法 (Pact Magic)'],
+      2:['魔能祈唤 (Eldritch Invocations)'],
+      3:['契约恩惠 (Pact Boon)'],
+      11:['神秘奥秘 (Mystic Arcanum)'],
+      20:['魔能精通 (Eldritch Master)']
+    }
+  },
+  wizard: {
+    name: '法师', icon: '📖', hd: 6,
+    primary: ['智力', '体质'], saves: ['智力', '感知'],
+    skills: ['奥秘', '历史', '洞悉', '调查', '医药', '宗教'],
+    skillCount: 2,
+    features: {
+      1:['施法', '奥术恢复 (Arcane Recovery)'],
+      2:['奥术学派 (Arcane Tradition)'],
+      18:['法术精通 (Spell Mastery)'],
+      20:['招牌法术 (Signature Spell)']
+    }
+  },
+  artificer: {
+    name: '奇械师', icon: '🔧', hd: 8,
+    primary: ['智力', '体质'], saves: ['体质', '智力'],
+    skills: ['奥秘', '历史', '调查', '医药', '自然', '察觉', '手上功夫'],
+    skillCount: 2,
+    features: {
+      1:['魔法分析 (Magical Tinkering)', '施法'],
+      2:['注法物品 (Infuse Item)'],
+      3:['奇械师专精 (Artificer Specialist)', '造物专家 (The Right Tool for the Job)'],
+      5:['额外攻击 (战斗匠师/装甲师)'],
+      7:['灵光闪现 (Flash of Genius)'],
+      10:['魔法物品精通 (Magic Item Adept)'],
+      11:['法术储存物品 (Spell-Storing Item)'],
+      14:['魔法物品大师 (Magic Item Savant)'],
+      18:['魔法物品大师(2)'],
+      20:['超凡之魂 (Soul of Artifice)']
+    }
+  },
+  bloodhunter: {
+    name: '血猎手', icon: '🩸', hd: 10,
+    primary: ['力量', '感知'], saves: ['力量', '感知'],
+    skills: ['运动', '奥秘', '洞悉', '调查', '宗教', '求生'],
+    skillCount: 2,
+    features: {
+      1:['猎手之血 (Hunter\'s Bane)', '血之诅咒 (Blood Maledict)'],
+      2:['战斗风格', '血祭仪式 (Crimson Rite)'],
+      3:['血猎结社 (Blood Hunter Order)'],
+      5:['额外攻击'],
+      7:['血之诅咒(2)'],
+      11:['黑暗强化 (Dark Augmentation)'],
+      13:['血之印记 (Brand of Castigation)'],
+      15:['血之诅咒(3)'],
+      18:['血之坚韧 (Hardened Soul)'],
+      20:['血之掌控 (Sanguine Mastery)']
+    }
+  }
+};
+
+const SUBCLASS_DATA = {
+  barbarian: [
+    { name:'狂战士道途', source:'PHB2024' },
+    { name:'兽心道途', source:'PHB2024' },
+    { name:'世界树道途', source:'PHB2024' },
+    { name:'狂热者道途', source:'PHB2024' },
+    { name:'战狂道途', source:'SCAG' },
+    { name:'先祖守卫道途', source:'XGE' },
+    { name:'风暴先驱道途', source:'XGE' },
+    { name:'狂野魔法道途', source:'TCE' },
+    { name:'野兽道途', source:'TCE' },
+    { name:'巨人道途', source:'BPGG' }
+  ],
+  bard: [
+    { name:'勇气学院', source:'PHB2024' },
+    { name:'舞蹈学院', source:'PHB2024' },
+    { name:'逸闻学院', source:'PHB2024' },
+    { name:'魅心学院', source:'PHB2024' },
+    { name:'剑舞学院', source:'XGE' },
+    { name:'低语学院', source:'XGE' },
+    { name:'创造学院', source:'TCE' },
+    { name:'雄辩学院', source:'TCE' },
+    { name:'精魂学院', source:'VGR' },
+    { name:'皓月学院', source:'FR' }
+  ],
+  cleric: [
+    { name:'生命领域', source:'PHB2024' },
+    { name:'光明领域', source:'PHB2024' },
+    { name:'诡术领域', source:'PHB2024' },
+    { name:'战争领域', source:'PHB2024' },
+    { name:'自然领域', source:'PHB14' },
+    { name:'风暴领域', source:'PHB14' },
+    { name:'死亡领域', source:'DMG14' },
+    { name:'奥秘领域', source:'SCAG' },
+    { name:'锻造领域', source:'XGE' },
+    { name:'坟墓领域', source:'XGE' },
+    { name:'秩序领域', source:'TCE' },
+    { name:'和平领域', source:'TCE' },
+    { name:'暮光领域', source:'TCE' },
+    { name:'知识领域', source:'FR' }
+  ],
+  druid: [
+    { name:'大地结社', source:'PHB2024' },
+    { name:'月亮结社', source:'PHB2024' },
+    { name:'海洋结社', source:'PHB2024' },
+    { name:'星辰结社', source:'PHB2024' },
+    { name:'梦境结社', source:'XGE' },
+    { name:'牧人结社', source:'XGE' },
+    { name:'孢子结社', source:'TCE' },
+    { name:'野火结社', source:'TCE' }
+  ],
+  fighter: [
+    { name:'战斗大师', source:'PHB2024' },
+    { name:'勇士', source:'PHB2024' },
+    { name:'奥法骑士', source:'PHB2024' },
+    { name:'灵能武士', source:'PHB2024' },
+    { name:'魔射手', source:'XGE' },
+    { name:'骑兵', source:'XGE' },
+    { name:'武士', source:'XGE' },
+    { name:'回音骑士', source:'EGW' },
+    { name:'符文骑士', source:'TCE' },
+    { name:'旗将', source:'FR' }
+  ],
+  monk: [
+    { name:'命流武者', source:'PHB2024' },
+    { name:'暗影武者', source:'PHB2024' },
+    { name:'四象武者', source:'PHB2024' },
+    { name:'散打武者', source:'PHB2024' },
+    { name:'永亡宗', source:'SCAG' },
+    { name:'醉拳宗', source:'XGE' },
+    { name:'剑圣宗', source:'XGE' },
+    { name:'日魂宗', source:'XGE' },
+    { name:'星我宗', source:'TCE' },
+    { name:'神龙宗', source:'FTD' }
+  ],
+  paladin: [
+    { name:'奉献之誓', source:'PHB2024' },
+    { name:'荣耀之誓', source:'PHB2024' },
+    { name:'古贤之誓', source:'PHB2024' },
+    { name:'复仇之誓', source:'PHB2024' },
+    { name:'破誓者', source:'DMG14' },
+    { name:'王冠之誓', source:'SCAG' },
+    { name:'征服之誓', source:'XGE' },
+    { name:'救赎之誓', source:'XGE' },
+    { name:'守望之誓', source:'TCE' }
+  ],
+  ranger: [
+    { name:'驯兽师', source:'PHB2024' },
+    { name:'妖精漫游者', source:'PHB2024' },
+    { name:'幽域追猎者', source:'PHB2024' },
+    { name:'猎人', source:'PHB2024' },
+    { name:'边界行者', source:'XGE' },
+    { name:'怪物杀手', source:'XGE' },
+    { name:'集群牧者', source:'TCE' },
+    { name:'龙兽守卫', source:'FTD' },
+    { name:'凛冬行者', source:'FR' }
+  ],
+  rogue: [
+    { name:'诡术师', source:'PHB2024' },
+    { name:'刺客', source:'PHB2024' },
+    { name:'魂刃', source:'PHB2024' },
+    { name:'盗贼', source:'PHB2024' },
+    { name:'调查员', source:'XGE' },
+    { name:'策士', source:'XGE' },
+    { name:'斥候', source:'XGE' },
+    { name:'风流剑客', source:'XGE' },
+    { name:'鬼魅', source:'TCE' },
+    { name:'三神门徒', source:'FR' }
+  ],
+  sorcerer: [
+    { name:'畸变术法', source:'PHB2024' },
+    { name:'时械术法', source:'PHB2024' },
+    { name:'龙族术法', source:'PHB2024' },
+    { name:'狂野术法', source:'PHB2024' },
+    { name:'神圣之魂', source:'XGE' },
+    { name:'幽影魔法', source:'XGE' },
+    { name:'风暴术法', source:'XGE' },
+    { name:'月之术法', source:'DSDQ' },
+    { name:'咒火术法', source:'FR' }
+  ],
+  warlock: [
+    { name:'至高妖精宗主', source:'PHB2024' },
+    { name:'天界宗主', source:'PHB2024' },
+    { name:'邪魔宗主', source:'PHB2024' },
+    { name:'旧日支配者宗主', source:'PHB2024' },
+    { name:'不朽者', source:'SCAG' },
+    { name:'咒剑', source:'XGE' },
+    { name:'深海意志', source:'TCE' },
+    { name:'巨灵', source:'TCE' },
+    { name:'死灵', source:'VGR' }
+  ],
+  wizard: [
+    { name:'防护师', source:'PHB2024' },
+    { name:'预言师', source:'PHB2024' },
+    { name:'塑能师', source:'PHB2024' },
+    { name:'幻术师', source:'PHB2024' },
+    { name:'咒法学派', source:'PHB14' },
+    { name:'惑控学派', source:'PHB14' },
+    { name:'死灵学派', source:'PHB14' },
+    { name:'变化学派', source:'PHB14' },
+    { name:'战争魔法', source:'XGE' },
+    { name:'时间魔法', source:'EGW' },
+    { name:'重力魔法', source:'EGW' },
+    { name:'书士会', source:'TCE' },
+    { name:'剑咏者', source:'FR' }
+  ],
+  artificer: [
+    { name:'炼金师', source:'EFA' },
+    { name:'装甲师', source:'EFA' },
+    { name:'魔炮师', source:'EFA' },
+    { name:'战地匠师', source:'EFA' },
+    { name:'制图师', source:'EFA' }
+  ],
+  bloodhunter: [
+    { name:'弑灵结社', source:'血猎手' },
+    { name:'化狼结社', source:'血猎手' },
+    { name:'突变结社', source:'血猎手' },
+    { name:'渎魂结社', source:'血猎手' }
+  ]
+};
+
+const RACES = [
+  { name:'人类', source:'PHB2024', asi:'全部+1' },
+  { name:'精灵', source:'PHB2024', asi:'敏捷+2' },
+  { name:'矮人', source:'PHB2024', asi:'体质+2' },
+  { name:'半身人', source:'PHB2024', asi:'敏捷+2' },
+  { name:'龙裔', source:'PHB2024', asi:'力量+2,魅力+1' },
+  { name:'侏儒', source:'PHB2024', asi:'智力+2' },
+  { name:'半精灵', source:'PHB14', asi:'魅力+2,任选两项+1' },
+  { name:'半兽人', source:'PHB14', asi:'力量+2,体质+1' },
+  { name:'提夫林', source:'PHB2024', asi:'魅力+2' },
+  { name:'阿斯莫', source:'PHB2024', asi:'魅力+2' },
+  { name:'歌利亚', source:'PHB2024', asi:'力量+2,体质+1' },
+  { name:'兽人', source:'PHB2024', asi:'力量+1,体质+1' },
+  { name:'战俑(机关人)', source:'ERLW', asi:'体质+2,任选+1' },
+  { name:'离梦人', source:'ERLW', asi:'感知+2,魅力+1' },
+  { name:'幻身灵', source:'MPMM', asi:'魅力+2,任选+1' },
+  { name:'仙灵', source:'MPMM', asi:'任选+2,任选+1' },
+  { name:'元素裔', source:'MPMM', asi:'体质+2,任选+1' },
+  { name:'大地精', source:'MPMM', asi:'力量+1,体质+1' },
+  { name:'牛头人', source:'MPMM', asi:'力量+2,体质+1' }
+];
+
+const BACKGROUNDS = [
+  { name:'侍僧', skills:['洞悉','宗教'], tools:'无', languages:2, feature:'庇护所 (Shelter of the Faithful)' },
+  { name:'工匠', skills:['调查','游说'], tools:'工匠工具(一种)', languages:1, feature:'公会会员 (Guild Membership)' },
+  { name:'骗子', skills:['欺瞒','手上功夫'], tools:'易容工具', languages:0, feature:'假身份 (False Identity)' },
+  { name:'罪犯', skills:['欺瞒','隐匿'], tools:'盗贼工具', languages:0, feature:'犯罪联络 (Criminal Contact)' },
+  { name:'艺人', skills:['体操','表演'], tools:'乐器(一种)', languages:0, feature:'群众爱戴 (By Popular Demand)' },
+  { name:'农民', skills:['驯兽','自然'], tools:'载具(陆地)', languages:0, feature:'质朴信任 (Rustic Hospitality)' },
+  { name:'警卫', skills:['运动','察觉'], tools:'无', languages:1, feature:'守望者 (Watcher\'s Eye)' },
+  { name:'向导', skills:['隐匿','求生'], tools:'制图工具', languages:1, feature:'流浪者 (Wanderer)' },
+  { name:'隐士', skills:['医药','宗教'], tools:'草药工具', languages:1, feature:'发现 (Discovery)' },
+  { name:'商人', skills:['洞悉','游说'], tools:'导航工具', languages:1, feature:'商队联络 (Guild Membership)' },
+  { name:'贵族', skills:['历史','游说'], tools:'游戏套装(一种)', languages:1, feature:'特权地位 (Position of Privilege)' },
+  { name:'智者', skills:['奥秘','历史'], tools:'无', languages:2, feature:'研究员 (Researcher)' },
+  { name:'水手', skills:['运动','察觉'], tools:'载具(水上)', languages:0, feature:'船运通道 (Ship\'s Passage)' },
+  { name:'士兵', skills:['运动','威吓'], tools:'载具(陆地)', languages:0, feature:'军阶 (Military Rank)' },
+  { name:'流浪者', skills:['运动','求生'], tools:'无', languages:0, feature:'本地知识 (Wanderer)' }
+];
+
+const ALIGNMENTS = {
+  'LG':'守序善良', 'NG':'中立善良', 'CG':'混乱善良',
+  'LN':'守序中立', 'TN':'绝对中立', 'CN':'混乱中立',
+  'LE':'守序邪恶', 'NE':'中立邪恶', 'CE':'混乱邪恶'
+};
+
+// Ability Score Standard Array
+const STANDARD_ARRAY = [15, 14, 13, 12, 10, 8];
+
+// ============================================================
+// DATA: Spells — 基于 5E 不全书（PHB2024 / PHB2014 / XGE / TCE）
+// 格式: { name, school, cast, range, duration, conc, rit, desc }
+// ============================================================
+const SPELL_DATA = {
+  // ===== 吟游诗人 Bard =====
+  bard: {
+    0: [
+      { name:'恶言相加', school:'惑控', cast:'1动作', range:'60尺', dur:'立即', desc:'目标感知豁免，失败受1d4心灵伤害，下次攻击前劣势', conc:0, rit:0 },
+      { name:'法师之手', school:'咒法', cast:'1动作', range:'30尺', dur:'1分钟', desc:'召唤幽灵手，操纵物体、开门、取物', conc:0, rit:0 },
+      { name:'传讯术', school:'变化', cast:'1动作', range:'120尺', dur:'1轮', desc:'向范围内一个生物传递悄悄话', conc:0, rit:0 },
+      { name:'恶毒嘲笑', school:'惑控', cast:'1动作', range:'60尺', dur:'立即', desc:'1d4心灵伤害，目标下一次攻击劣势（标志性吟游诗人戏法）', conc:0, rit:0 },
+      { name:'光亮术', school:'塑能', cast:'1动作', range:'触碰', dur:'1小时', desc:'物体发光20尺半径亮光+20尺微光', conc:0, rit:0 },
+      { name:'魔法伎俩', school:'变化', cast:'1动作', range:'10尺', dur:'1小时', desc:'小魔术效果，清洁/弄脏、点燃/熄灭蜡烛等', conc:0, rit:0 }
+    ],
+    1: [
+      { name:'疗伤术', school:'防护', cast:'1动作', range:'触碰', dur:'立即', desc:'恢复1d8+施法属性调整值生命值', conc:0, rit:0 },
+      { name:'魅惑人类', school:'惑控', cast:'1动作', range:'30尺', dur:'1小时', desc:'目标感知豁免，失败则魅惑，结束后知道被魅惑', conc:0, rit:0 },
+      { name:'不谐低语', school:'惑控', cast:'1动作', range:'60尺', dur:'立即', desc:'3d6心灵伤害，目标须用反应远离你（标志性）', conc:0, rit:0 },
+      { name:'易容术', school:'幻术', cast:'1动作', range:'自身', dur:'1小时', desc:'改变外貌，包括衣物和装备', conc:0, rit:0 },
+      { name:'妖火', school:'塑能', cast:'1动作', range:'60尺', dur:'1分钟', desc:'20尺立方体发微光，豁免失败攻击对其优势', conc:1, rit:0 },
+      { name:'羽落术', school:'变化', cast:'1反应', range:'60尺', dur:'1分钟', desc:'5个生物缓降，不受坠落伤害', conc:0, rit:0 },
+      { name:'治愈真言', school:'防护', cast:'1附赠', range:'60尺', dur:'立即', desc:'附赠动作恢复1d4+调整值生命（标志性）', conc:0, rit:0 },
+      { name:'睡眠术', school:'惑控', cast:'1动作', range:'90尺', dur:'1分钟', desc:'5d8生命值生物陷入沉睡', conc:0, rit:0 }
+    ],
+    2: [
+      { name:'暗示术', school:'惑控', cast:'1动作', range:'30尺', dur:'8小时', desc:'影响目标执行一个合理行动（标志性）', conc:1, rit:0 },
+      { name:'隐形术', school:'幻术', cast:'1动作', range:'触碰', dur:'1小时', desc:'生物变隐形，攻击或施法则解除', conc:1, rit:0 },
+      { name:'灼热金属', school:'变化', cast:'1动作', range:'60尺', dur:'1分钟', desc:'金属发红热，每回合2d8火焰伤害+劣势', conc:1, rit:0 },
+      { name:'次级复原术', school:'防护', cast:'1动作', range:'触碰', dur:'立即', desc:'解除目盲/耳聋/麻痹/中毒', conc:0, rit:0 },
+      { name:'沉默术', school:'幻术', cast:'1动作', range:'120尺', dur:'10分钟', desc:'20尺球体内无法使用声音（无法施放言语成分法术）', conc:1, rit:1 },
+      { name:'强化属性', school:'变化', cast:'1动作', range:'触碰', dur:'1小时', desc:'一项属性检定获得优势', conc:1, rit:0 }
+    ],
+    3: [
+      { name:'催眠图纹', school:'幻术', cast:'1动作', range:'120尺', dur:'1分钟', desc:'30尺立方体生物被催眠，无法行动（标志性）', conc:1, rit:0 },
+      { name:'解除魔法', school:'防护', cast:'1动作', range:'120尺', dur:'立即', desc:'解除法术效应，3环以下自动成功', conc:0, rit:0 },
+      { name:'恐惧术', school:'幻术', cast:'1动作', range:'自身(30尺锥)', dur:'1分钟', desc:'锥形生物恐慌，掉落物品并疾走远离', conc:1, rit:0 },
+      { name:'高等隐形术', school:'幻术', cast:'1动作', range:'触碰', dur:'1分钟', desc:'隐形且攻击/施法不解除', conc:1, rit:0 },
+      { name:'短讯术', school:'塑能', cast:'1动作', range:'无限', dur:'1轮', desc:'向任意位面生物传讯25字，对方可回复（标志性）', conc:0, rit:0 }
+    ],
+    4: [
+      { name:'任意门', school:'咒法', cast:'1动作', range:'500尺', dur:'立即', desc:'传送到500尺内可见位置（标志性）', conc:0, rit:0 },
+      { name:'变形术', school:'变化', cast:'1动作', range:'60尺', dur:'1小时', desc:'生物变身为同CR野兽', conc:1, rit:0 },
+      { name:'高等复原术', school:'防护', cast:'1动作', range:'触碰', dur:'立即', desc:'解除魅惑/石化/诅咒/属性降低等', conc:0, rit:0 },
+      { name:'行动自如', school:'防护', cast:'1动作', range:'触碰', dur:'1小时', desc:'免疫困难地形和魔法减速/束缚', conc:0, rit:0 }
+    ],
+    5: [
+      { name:'活化物件', school:'变化', cast:'1动作', range:'120尺', dur:'1分钟', desc:'赋予10件小物品生命，作为构装体战斗', conc:1, rit:0 },
+      { name:'支配人类', school:'惑控', cast:'1动作', range:'60尺', dur:'1分钟', desc:'控制一个人形生物的行动', conc:1, rit:0 },
+      { name:'集体疗伤术', school:'防护', cast:'1动作', range:'60尺', dur:'立即', desc:'6个生物各恢复3d8+调整值生命', conc:0, rit:0 },
+      { name:'死者复活', school:'死灵', cast:'1小时', range:'触碰', dur:'立即', desc:'复活死亡不超过10天的生物', conc:0, rit:0 },
+      { name:'通灵术', school:'变化', cast:'1分钟', range:'自身', dur:'1小时', desc:'对不可见/隐藏生物信息进行侦测', conc:1, rit:0 }
+    ],
+    6: [
+      { name:'真知术', school:'预言', cast:'1动作', range:'触碰', dur:'1小时', desc:'看穿幻术/隐形/变形/以太位面', conc:0, rit:0 },
+      { name:'群体暗示术', school:'惑控', cast:'1动作', range:'60尺', dur:'24小时', desc:'影响至多12个生物执行行动', conc:0, rit:0 },
+      { name:'不可抗拒舞蹈', school:'惑控', cast:'1动作', range:'30尺', dur:'1分钟', desc:'目标被迫跳舞，无法行动且攻击对其优势（标志性）', conc:1, rit:0 }
+    ],
+    7: [
+      { name:'魔力豪宅', school:'咒法', cast:'1分钟', range:'300尺', dur:'24小时', desc:'创造异次元豪宅，可容纳100人', conc:0, rit:0 },
+      { name:'传送术', school:'咒法', cast:'1动作', range:'10尺', dur:'1轮', desc:'传送至同一位面任意位置（标志性）', conc:0, rit:0 },
+      { name:'再生术', school:'变化', cast:'1分钟', range:'触碰', dur:'1小时', desc:'每回合恢复1生命，断肢再生', conc:0, rit:0 }
+    ],
+    8: [
+      { name:'支配怪物', school:'惑控', cast:'1动作', range:'60尺', dur:'1小时', desc:'控制任意生物（非限定人形）', conc:1, rit:0 },
+      { name:'弱智术', school:'惑控', cast:'1动作', range:'150尺', dur:'立即', desc:'智力变为1，无法施法和交流', conc:0, rit:0 },
+      { name:'心灵屏障', school:'防护', cast:'1动作', range:'触碰', dur:'24小时', desc:'免疫心灵伤害、读心、魅惑、探知', conc:0, rit:0 }
+    ],
+    9: [
+      { name:'预警术', school:'预言', cast:'1分钟', range:'触碰', dur:'8小时', desc:'预知危险，先攻优势、免突袭（标志性）', conc:0, rit:0 },
+      { name:'完全变形术', school:'变化', cast:'1动作', range:'自身', dur:'1小时', desc:'变身为任意生物（CR≤等级）', conc:1, rit:0 },
+      { name:'律令医疗', school:'防护', cast:'1动作', range:'触碰', dur:'立即', desc:'恢复至满血，结束所有负面状态', conc:0, rit:0 }
+    ]
+  },
+  // ===== 牧师 Cleric =====
+  cleric: {
+    0: [
+      { name:'神导术', school:'预言', cast:'1动作', range:'触碰', dur:'1分钟', desc:'目标技能检定可加1d4（标志性）', conc:1, rit:0 },
+      { name:'圣火术', school:'塑能', cast:'1动作', range:'60尺', dur:'立即', desc:'目标敏捷豁免，失败受1d8光耀伤害（标志性）', conc:0, rit:0 },
+      { name:'维生术', school:'死灵', cast:'1动作', range:'15尺', dur:'立即', desc:'稳定濒死生物，无需医疗检定', conc:0, rit:0 },
+      { name:'奇术', school:'塑能', cast:'1动作', range:'30尺', dur:'1分钟', desc:'制造小奇观：震地声、变大声音、闪光', conc:0, rit:0 },
+      { name:'光亮术', school:'塑能', cast:'1动作', range:'触碰', dur:'1小时', desc:'物体产生20尺亮光+20尺微光', conc:0, rit:0 },
+      { name:'提升抗性', school:'防护', cast:'1动作', range:'触碰', dur:'1分钟', desc:'豁免检定可加1d4', conc:1, rit:0 }
+    ],
+    1: [
+      { name:'祝福术', school:'惑控', cast:'1动作', range:'30尺', dur:'1分钟', desc:'3个生物攻击+豁免+1d4（标志性）', conc:1, rit:0 },
+      { name:'疗伤术', school:'防护', cast:'1动作', range:'触碰', dur:'立即', desc:'恢复1d8+施法属性调整值生命', conc:0, rit:0 },
+      { name:'治愈真言', school:'防护', cast:'1附赠', range:'60尺', dur:'立即', desc:'附赠远程治疗1d4+调整值', conc:0, rit:0 },
+      { name:'曳光弹', school:'塑能', cast:'1动作', range:'120尺', dur:'1轮', desc:'4d6光耀伤害，下次攻击对其优势（标志性）', conc:1, rit:0 },
+      { name:'命令术', school:'惑控', cast:'1动作', range:'60尺', dur:'1轮', desc:'目标执行一个单词命令（趴下/丢弃/逃跑等）', conc:0, rit:0 },
+      { name:'庇护术', school:'防护', cast:'1附赠', range:'30尺', dur:'1分钟', desc:'保护目标不受攻击，攻击需先过感知豁免', conc:0, rit:0 },
+      { name:'致伤术', school:'死灵', cast:'1动作', range:'触碰', dur:'立即', desc:'近战法术攻击，3d10黯蚀伤害', conc:0, rit:0 }
+    ],
+    2: [
+      { name:'灵体武器', school:'塑能', cast:'1附赠', range:'60尺', dur:'1分钟', desc:'创造泛用武器，附赠攻击1d8+调整值力场伤害（标志性）', conc:0, rit:0 },
+      { name:'援助术', school:'防护', cast:'1动作', range:'30尺', dur:'8小时', desc:'3个生物最大生命+5，当前恢复5', conc:0, rit:0 },
+      { name:'次级复原术', school:'防护', cast:'1动作', range:'触碰', dur:'立即', desc:'解除目盲/耳聋/麻痹/中毒', conc:0, rit:0 },
+      { name:'沉默术', school:'幻术', cast:'1动作', range:'120尺', dur:'10分钟', desc:'20尺球体无法使用含言语成分的法术', conc:1, rit:1 },
+      { name:'防护毒素', school:'防护', cast:'1动作', range:'触碰', dur:'1小时', desc:'解除并免疫毒素伤害', conc:0, rit:0 },
+      { name:'人类定身术', school:'惑控', cast:'1动作', range:'60尺', dur:'1分钟', desc:'麻痹类人生物，每回合可重豁免', conc:1, rit:0 }
+    ],
+    3: [
+      { name:'回生术', school:'死灵', cast:'1动作', range:'触碰', dur:'立即', desc:'复活不超过1分钟死亡的角色（标志性）', conc:0, rit:0 },
+      { name:'灵体守卫', school:'咒法', cast:'1动作', range:'自身(15尺)', dur:'10分钟', desc:'15尺光环内敌人难度地形+每回合3d8光耀/黯蚀（标志性）', conc:1, rit:0 },
+      { name:'群体治愈真言', school:'防护', cast:'1附赠', range:'60尺', dur:'立即', desc:'至多6个生物各恢复1d4+调整值生命', conc:0, rit:0 },
+      { name:'解除魔法', school:'防护', cast:'1动作', range:'120尺', dur:'立即', desc:'解除法术效应', conc:0, rit:0 },
+      { name:'希望之光', school:'防护', cast:'1动作', range:'30尺', dur:'1分钟', desc:'目标攻击+豁免优势，免疫恐慌（标志性）', conc:1, rit:0 },
+      { name:'死者交谈', school:'死灵', cast:'1动作', range:'10尺', dur:'10分钟', desc:'与尸体交谈，问5个问题', conc:0, rit:1 }
+    ],
+    4: [
+      { name:'放逐术', school:'防护', cast:'1动作', range:'60尺', dur:'1分钟', desc:'目标被送入无害半位面（异界生物永逐）', conc:1, rit:0 },
+      { name:'防死结界', school:'死灵', cast:'1动作', range:'触碰', dur:'8小时', desc:'免疫即死+生命降至0不减', conc:0, rit:0 },
+      { name:'行动自如', school:'防护', cast:'1动作', range:'触碰', dur:'1小时', desc:'无视困难地形和魔法束缚', conc:0, rit:0 },
+      { name:'预言术', school:'预言', cast:'1分钟', range:'自身', dur:'立即', desc:'从神祇获得未来行动建议（标志性）', conc:0, rit:1 },
+      { name:'信仰守卫', school:'咒法', cast:'1动作', range:'30尺', dur:'8小时', desc:'守卫生灵，60尺内敌人进入时4d8光耀伤害', conc:0, rit:0 }
+    ],
+    5: [
+      { name:'死者复活', school:'死灵', cast:'1小时', range:'触碰', dur:'立即', desc:'复活死亡不超过10天的生物', conc:0, rit:0 },
+      { name:'焰击术', school:'塑能', cast:'1动作', range:'60尺', dur:'立即', desc:'10尺半径柱子，8d6火焰+光耀伤害（标志性）', conc:0, rit:0 },
+      { name:'高等复原术', school:'防护', cast:'1动作', range:'触碰', dur:'立即', desc:'解除魅惑/石化/诅咒/属性降低等', conc:0, rit:0 },
+      { name:'探知', school:'预言', cast:'10分钟', range:'自身', dur:'10分钟', desc:'远距离观看目标周围（标志性）', conc:1, rit:0 },
+      { name:'通神术', school:'预言', cast:'1分钟', range:'自身', dur:'1分钟', desc:'向神祇问3个是/否问题（标志性）', conc:0, rit:1 }
+    ],
+    6: [
+      { name:'医疗术', school:'防护', cast:'1动作', range:'触碰', dur:'立即', desc:'恢复70生命，结束目盲/耳聋/疾病', conc:0, rit:0 },
+      { name:'重伤术', school:'死灵', cast:'1动作', range:'触碰', dur:'立即', desc:'近战法术攻击，8d6+30黯蚀伤害（标志性）', conc:0, rit:0 },
+      { name:'真知术', school:'预言', cast:'1动作', range:'触碰', dur:'1小时', desc:'看穿所有幻术/隐形/变形', conc:0, rit:0 },
+      { name:'回返真言', school:'咒法', cast:'1动作', range:'5尺', dur:'立即', desc:'返回之前准备好的圣所', conc:0, rit:0 }
+    ],
+    7: [
+      { name:'幻化神躯', school:'净化', cast:'1附赠', range:'自身', dur:'1分钟', desc:'展翅飞行60尺、灵光造成伤害、远程法术治疗（标志性）', conc:1, rit:0 },
+      { name:'复生术', school:'死灵', cast:'1小时', range:'触碰', dur:'立即', desc:'复活死亡不超过100年的生物', conc:0, rit:0 },
+      { name:'异界传送', school:'咒法', cast:'1动作', range:'自身', dur:'立即', desc:'传送至另一位面（标志性）', conc:0, rit:0 },
+      { name:'召唤天界生物', school:'咒法', cast:'1动作', range:'90尺', dur:'1小时', desc:'召唤天界生物帮助战斗', conc:1, rit:0 }
+    ],
+    8: [
+      { name:'圣洁灵光', school:'防护', cast:'1动作', range:'自身(30尺)', dur:'1分钟', desc:'灵光内敌人劣势，神圣伤害（标志性）', conc:1, rit:0 },
+      { name:'反魔法力场', school:'防护', cast:'1动作', range:'自身(10尺)', dur:'1小时', desc:'10尺内法术无效、魔法物品失效', conc:1, rit:0 },
+      { name:'地震术', school:'塑能', cast:'1动作', range:'500尺', dur:'1分钟', desc:'100尺范围内裂缝+建筑崩塌', conc:1, rit:0 }
+    ],
+    9: [
+      { name:'群体医疗术', school:'防护', cast:'1动作', range:'60尺', dur:'立即', desc:'恢复至多700生命，解除多种负面状态（标志性）', conc:0, rit:0 },
+      { name:'完全复生术', school:'死灵', cast:'1小时', range:'触碰', dur:'立即', desc:'无尸体也复活，200年内死亡均可', conc:0, rit:0 },
+      { name:'异界之门', school:'咒法', cast:'1动作', range:'60尺', dur:'1分钟', desc:'开启通往往日的传送门（标志性）', conc:1, rit:0 }
+    ]
+  },
+  // ===== 德鲁伊 Druid =====
+  druid: {
+    0: [
+      { name:'德鲁伊伎俩', school:'变化', cast:'1动作', range:'30尺', dur:'多种', desc:'小自然魔法：开花/落叶/天气预报等（标志性）', conc:0, rit:0 },
+      { name:'橡棍术', school:'变化', cast:'1附赠', range:'触碰', dur:'1分钟', desc:'木棒/木杖伤害变1d8+施法属性', conc:0, rit:0 },
+      { name:'荆棘之鞭', school:'变化', cast:'1动作', range:'30尺', dur:'立即', desc:'1d6穿刺伤害，可拉近10尺（标志性）', conc:0, rit:0 },
+      { name:'燃火术', school:'塑能', cast:'1动作', range:'60尺', dur:'立即', desc:'远程法术攻击，1d10火焰伤害', conc:0, rit:0 },
+      { name:'神导术', school:'预言', cast:'1动作', range:'触碰', dur:'1分钟', desc:'技能检定+1d4', conc:1, rit:0 },
+      { name:'毒气喷涌', school:'死灵', cast:'1动作', range:'30尺', dur:'立即', desc:'目标体质豁免，失败受1d12毒素伤害', conc:0, rit:0 }
+    ],
+    1: [
+      { name:'纠缠术', school:'咒法', cast:'1动作', range:'90尺', dur:'1分钟', desc:'20尺范围藤蔓纠缠，困难地形+束缚（标志性）', conc:1, rit:0 },
+      { name:'疗伤术', school:'防护', cast:'1动作', range:'触碰', dur:'立即', desc:'1d8+调整值治疗', conc:0, rit:0 },
+      { name:'妖火', school:'塑能', cast:'1动作', range:'60尺', dur:'1分钟', desc:'20尺生物发光，对其攻击优势', conc:1, rit:0 },
+      { name:'动物交谈', school:'预言', cast:'1动作', range:'自身', dur:'10分钟', desc:'与野兽交谈和沟通（标志性）', conc:0, rit:1 },
+      { name:'大步奔行', school:'变化', cast:'1动作', range:'触碰', dur:'1小时', desc:'速度+10尺，无需专注', conc:0, rit:0 },
+      { name:'治愈真言', school:'防护', cast:'1附赠', range:'60尺', dur:'立即', desc:'附赠远程1d4+调整值治疗', conc:0, rit:0 },
+      { name:'雷鸣波', school:'塑能', cast:'1动作', range:'自身(15尺)', dur:'立即', desc:'15尺立方体2d8雷鸣+推开10尺', conc:0, rit:0 }
+    ],
+    2: [
+      { name:'月华之光', school:'塑能', cast:'1动作', range:'120尺', dur:'1分钟', desc:'5尺半径区域每回合2d10光耀伤害（标志性）', conc:1, rit:0 },
+      { name:'荆棘丛生', school:'变化', cast:'1动作', range:'150尺', dur:'10分钟', desc:'20尺半径区域变为困难地形，每5尺2d4穿刺', conc:1, rit:0 },
+      { name:'灼热金属', school:'变化', cast:'1动作', range:'60尺', dur:'1分钟', desc:'金属发出高热，每回合2d8火焰伤害', conc:1, rit:0 },
+      { name:'树肤术', school:'变化', cast:'1动作', range:'触碰', dur:'1小时', desc:'AC至少16，无需专注（标志性）', conc:1, rit:0 },
+      { name:'次级复原术', school:'防护', cast:'1动作', range:'触碰', dur:'立即', desc:'解除目盲/耳聋/麻痹/中毒', conc:0, rit:0 },
+      { name:'召唤动物', school:'咒法', cast:'1动作', range:'60尺', dur:'1小时', desc:'召唤野兽助战（标志性）', conc:1, rit:0 }
+    ],
+    3: [
+      { name:'召唤闪电', school:'咒法', cast:'1动作', range:'120尺', dur:'10分钟', desc:'每回合行动施放闪电，3d10/4d10伤害（标志性）', conc:1, rit:0 },
+      { name:'植物滋长', school:'变化', cast:'1动作/8h', range:'150尺', dur:'立即', desc:'100尺半径困难地形x4，或全年丰收一倍', conc:0, rit:0 },
+      { name:'召雷术', school:'咒法', cast:'1动作', range:'自身', dur:'1分钟', desc:'风暴天气每回合可施放2次闪电（标志性）', conc:1, rit:0 },
+      { name:'变形术', school:'变化', cast:'1动作', range:'60尺', dur:'1小时', desc:'变野兽CR=等级', conc:1, rit:0 },
+      { name:'水下呼吸', school:'变化', cast:'1动作', range:'30尺', dur:'24小时', desc:'10个生物水下呼吸', conc:0, rit:1 },
+      { name:'解除魔法', school:'防护', cast:'1动作', range:'120尺', dur:'立即', desc:'解除法术效应', conc:0, rit:0 }
+    ],
+    4: [
+      { name:'召唤林地之魂', school:'咒法', cast:'1动作', range:'60尺', dur:'1小时', desc:'召唤自然精魂帮助战斗（标志性）', conc:1, rit:0 },
+      { name:'冰风暴', school:'塑能', cast:'1动作', range:'300尺', dur:'立即', desc:'20尺半径2d8钝击+4d6寒冷，困难地形', conc:0, rit:0 },
+      { name:'变形术', school:'变化', cast:'1动作', range:'60尺', dur:'1小时', desc:'变野兽（CR≤等级）', conc:1, rit:0 },
+      { name:'枯萎术', school:'死灵', cast:'1动作', range:'30尺', dur:'立即', desc:'植物立刻死亡，其他生物8d8黯蚀', conc:0, rit:0 },
+      { name:'石肤术', school:'变化', cast:'1动作', range:'触碰', dur:'1小时', desc:'非魔法钝击/穿刺/挥砍抗性', conc:1, rit:0 }
+    ],
+    5: [
+      { name:'铁墙术', school:'塑能', cast:'1动作', range:'120尺', dur:'10分钟', desc:'不破的铁墙，拦阻敌人', conc:1, rit:0 },
+      { name:'群体疗伤术', school:'防护', cast:'1动作', range:'60尺', dur:'立即', desc:'6个生物各恢复3d8+调整值', conc:0, rit:0 },
+      { name:'死者复活', school:'死灵', cast:'1小时', range:'触碰', dur:'立即', desc:'复活死亡≤10天生物', conc:0, rit:0 },
+      { name:'化石为泥', school:'变化', cast:'1动作', range:'120尺', dur:'立即', desc:'岩石变泥沼40尺立方', conc:0, rit:0 },
+      { name:'巨虫术', school:'变化', cast:'1动作', range:'30尺', dur:'10分钟', desc:'蜈蚣变巨型、蜘蛛变巨蜘蛛（标志性）', conc:1, rit:0 }
+    ],
+    6: [
+      { name:'日光射线', school:'塑能', cast:'1动作', range:'自身(60尺线)', dur:'1分钟', desc:'每回合6d8光耀伤害光束，克制亡灵/吸血鬼', conc:1, rit:0 },
+      { name:'医疗术', school:'防护', cast:'1动作', range:'触碰', dur:'立即', desc:'恢复70生命，解除多种效果', conc:0, rit:0 },
+      { name:'回返真言', school:'咒法', cast:'1动作', range:'5尺', dur:'立即', desc:'返回准备好的神林', conc:0, rit:0 },
+      { name:'荆棘之墙', school:'咒法', cast:'1动作', range:'120尺', dur:'10分钟', desc:'60尺荆棘墙，穿过7d8穿刺（标志性）', conc:1, rit:0 }
+    ],
+    7: [
+      { name:'火焰风暴', school:'塑能', cast:'1动作', range:'150尺', dur:'立即', desc:'10个10尺立方，7d10火焰伤害（标志性）', conc:0, rit:0 },
+      { name:'再生术', school:'变化', cast:'1分钟', range:'触碰', dur:'1小时', desc:'每回合恢复1生命，断肢再生', conc:0, rit:0 },
+      { name:'异界传送', school:'咒法', cast:'1动作', range:'自身', dur:'立即', desc:'传送到另一位面', conc:0, rit:0 },
+      { name:'反转重力', school:'变化', cast:'1动作', range:'100尺', dur:'1分钟', desc:'50尺圆柱内重力翻转', conc:1, rit:0 }
+    ],
+    8: [
+      { name:'动物形态', school:'变化', cast:'1动作', range:'30尺', dur:'24小时', desc:'10个自愿生物变野兽CR4（标志性）', conc:1, rit:0 },
+      { name:'阳炎爆', school:'塑能', cast:'1动作', range:'150尺', dur:'立即', desc:'60尺半径12d6光耀伤害+1分钟目盲（标志性）', conc:0, rit:0 },
+      { name:'海啸术', school:'咒法', cast:'1分钟', range:'视野', dur:'6轮', desc:'300x300尺巨浪吞没一切', conc:1, rit:0 },
+      { name:'地震术', school:'塑能', cast:'1动作', range:'500尺', dur:'1分钟', desc:'100尺范围地震', conc:1, rit:0 }
+    ],
+    9: [
+      { name:'变形万物', school:'变化', cast:'1动作', range:'120尺', dur:'永久', desc:'物品变生物、生物变物品——永久有效（标志性）', conc:0, rit:0 },
+      { name:'完全复生术', school:'死灵', cast:'1小时', range:'触碰', dur:'立即', desc:'无尸体也复活，200年内', conc:0, rit:0 },
+      { name:'复仇风暴', school:'咒法', cast:'1动作', range:'视野', dur:'1分钟', desc:'360尺半径暴风雨，每回合不同灾难（标志性）', conc:1, rit:0 }
+    ]
+  },
+  // ===== 圣武士 Paladin =====
+  paladin: {
+    1: [
+      { name:'祝福术', school:'惑控', cast:'1动作', range:'30尺', dur:'1分钟', desc:'3个生物攻击+豁免+1d4', conc:1, rit:0 },
+      { name:'疗伤术', school:'防护', cast:'1动作', range:'触碰', dur:'立即', desc:'1d8+调整值治疗', conc:0, rit:0 },
+      { name:'命令术', school:'惑控', cast:'1动作', range:'60尺', dur:'1轮', desc:'目标执行一个单词命令', conc:0, rit:0 },
+      { name:'神恩', school:'塑能', cast:'1附赠', range:'自身', dur:'1分钟', desc:'武器每次命中+1d4光耀伤害（标志性）', conc:1, rit:0 },
+      { name:'防护善恶', school:'防护', cast:'1动作', range:'触碰', dur:'10分钟', desc:'多种生物类型攻击劣势、免疫附身/恐慌/魅惑', conc:1, rit:0 },
+      { name:'雷鸣斩', school:'塑能', cast:'1附赠', range:'自身', dur:'1分钟', desc:'下次命中+2d6雷鸣，目标需力量豁免否则推10尺（标志性）', conc:1, rit:0 },
+      { name:'激愤斩', school:'惑控', cast:'1附赠', range:'自身', dur:'1分钟', desc:'下次命中+1d6心灵，目标无法反应', conc:1, rit:0 }
+    ],
+    2: [
+      { name:'援助术', school:'防护', cast:'1动作', range:'30尺', dur:'8小时', desc:'3生物最大生命+5', conc:0, rit:0 },
+      { name:'次级复原术', school:'防护', cast:'1动作', range:'触碰', dur:'立即', desc:'解除目盲/耳聋/麻痹/中毒', conc:0, rit:0 },
+      { name:'魔化武器', school:'变化', cast:'1附赠', range:'触碰', dur:'1小时', desc:'武器+1加值', conc:1, rit:0 },
+      { name:'寻找坐骑', school:'咒法', cast:'10分钟', range:'30尺', dur:'立即', desc:'召唤智能坐骑（标志性）', conc:0, rit:0 },
+      { name:'诚实之域', school:'惑控', cast:'1动作', range:'60尺', dur:'10分钟', desc:'15尺内不能说谎', conc:0, rit:0 },
+      { name:'印记斩', school:'塑能', cast:'1附赠', range:'自身', dur:'1分钟', desc:'下次命中+2d6光耀，目标发光不可隐形', conc:1, rit:0 }
+    ],
+    3: [
+      { name:'活力灵光', school:'防护', cast:'1动作', range:'自身(10尺)', dur:'1分钟', desc:'灵光内每回合恢复生命（标志性）', conc:1, rit:0 },
+      { name:'十字军披风', school:'塑能', cast:'1动作', range:'自身(30尺)', dur:'1分钟', desc:'友军武器攻击+1d4光耀伤害（标志性）', conc:1, rit:0 },
+      { name:'解除魔法', school:'防护', cast:'1动作', range:'120尺', dur:'立即', desc:'解除法术效应', conc:0, rit:0 },
+      { name:'回生术', school:'死灵', cast:'1动作', range:'触碰', dur:'立即', desc:'复活1分钟内死亡的角色', conc:0, rit:0 },
+      { name:'致盲斩', school:'塑能', cast:'1附赠', range:'自身', dur:'1分钟', desc:'下次命中+3d8光耀，目标目盲', conc:1, rit:0 },
+      { name:'元素武器', school:'变化', cast:'1动作', range:'触碰', dur:'1小时', desc:'武器+1/+1d4元素伤害', conc:1, rit:0 }
+    ],
+    4: [
+      { name:'找寻高等坐骑', school:'咒法', cast:'10分钟', range:'30尺', dur:'立即', desc:'召唤天界/精类/邪魔坐骑（标志性）', conc:0, rit:0 },
+      { name:'防死结界', school:'死灵', cast:'1动作', range:'触碰', dur:'8小时', desc:'免疫即死+生命降到0不减', conc:0, rit:0 },
+      { name:'行动自如', school:'防护', cast:'1动作', range:'触碰', dur:'1小时', desc:'无视困难地形和魔法束缚', conc:0, rit:0 },
+      { name:'放逐术', school:'防护', cast:'1动作', range:'60尺', dur:'1分钟', desc:'目标送入无害半位面', conc:1, rit:0 },
+      { name:'惊惧斩', school:'塑能', cast:'1附赠', range:'自身', dur:'1分钟', desc:'下次命中+4d8心灵，目标恐慌', conc:1, rit:0 }
+    ],
+    5: [
+      { name:'原力法阵', school:'防护', cast:'1动作', range:'自身(30尺)', dur:'10分钟', desc:'灵光内魔法豁免优势+法术减半（标志性）', conc:1, rit:0 },
+      { name:'死者复活', school:'死灵', cast:'1小时', range:'触碰', dur:'立即', desc:'复活死亡≤10天生物', conc:0, rit:0 },
+      { name:'放逐斩', school:'防护', cast:'1附赠', range:'自身', dur:'1分钟', desc:'下次命中+5d10力场，低于50HP直接放逐（标志性）', conc:1, rit:0 },
+      { name:'神圣武器', school:'塑能', cast:'1附赠', range:'自身', dur:'1小时', desc:'武器发出30尺亮光+2d8光耀伤害', conc:1, rit:0 },
+      { name:'地动术', school:'变化', cast:'1动作', range:'120尺', dur:'立即', desc:'40尺地形改造', conc:0, rit:0 }
+    ]
+  },
+  // ===== 游侠 Ranger =====
+  ranger: {
+    1: [
+      { name:'猎人印记', school:'预言', cast:'1附赠', range:'90尺', dur:'1小时', desc:'目标每次武器命中+1d6伤害，追踪优势（标志性）', conc:1, rit:0 },
+      { name:'疗伤术', school:'防护', cast:'1动作', range:'触碰', dur:'立即', desc:'1d8+调整值治疗', conc:0, rit:0 },
+      { name:'动物交谈', school:'预言', cast:'1动作', range:'自身', dur:'10分钟', desc:'与野兽交谈', conc:0, rit:1 },
+      { name:'大步奔行', school:'变化', cast:'1动作', range:'触碰', dur:'1小时', desc:'速度+10尺', conc:0, rit:0 },
+      { name:'跳跃术', school:'变化', cast:'1动作', range:'触碰', dur:'1分钟', desc:'跳跃距离3倍', conc:0, rit:0 },
+      { name:'诱捕打击', school:'咒法', cast:'1附赠', range:'自身', dur:'1分钟', desc:'下次命中+1d6伤害，目标力量豁免否则束缚（标志性）', conc:1, rit:0 },
+      { name:'雾霭步', school:'咒法', cast:'1附赠', range:'自身', dur:'1分钟', desc:'首次攻击前隐身1轮（标志性）', conc:1, rit:0 }
+    ],
+    2: [
+      { name:'荆棘丛生', school:'变化', cast:'1动作', range:'150尺', dur:'10分钟', desc:'20尺半径困难地形，每5尺2d4穿刺', conc:1, rit:0 },
+      { name:'沉默术', school:'幻术', cast:'1动作', range:'120尺', dur:'10分钟', desc:'20尺球体封禁声音', conc:1, rit:1 },
+      { name:'动物信使', school:'惑控', cast:'1动作', range:'30尺', dur:'24小时', desc:'小动物传递短消息到指定地点', conc:0, rit:1 },
+      { name:'野兽知觉', school:'预言', cast:'1动作', range:'触碰', dur:'1小时', desc:'借助野兽感官感知周围', conc:1, rit:1 },
+      { name:'黑暗视觉', school:'变化', cast:'1动作', range:'触碰', dur:'8小时', desc:'60尺黑暗视觉', conc:0, rit:0 },
+      { name:'寻路术', school:'预言', cast:'1动作', range:'自身', dur:'1小时', desc:'感知地形布局和方位（标志性）', conc:1, rit:0 },
+      { name:'次级复原术', school:'防护', cast:'1动作', range:'触碰', dur:'立即', desc:'解除目盲/耳聋/麻痹/中毒', conc:0, rit:0 }
+    ],
+    3: [
+      { name:'万箭齐发', school:'咒法', cast:'1动作', range:'自身', dur:'立即', desc:'一次攻击射向范围内全部敌人（标志性）', conc:0, rit:0 },
+      { name:'闪电箭', school:'变化', cast:'1附赠', range:'自身', dur:'1分钟', desc:'弹药变闪电，4d8闪电伤害，20尺内目标半伤（标志性）', conc:1, rit:0 },
+      { name:'植物滋长', school:'变化', cast:'1动作', range:'150尺', dur:'立即', desc:'100尺范围x4困难地形', conc:0, rit:0 },
+      { name:'水下呼吸', school:'变化', cast:'1动作', range:'30尺', dur:'24小时', desc:'10个生物水下呼吸', conc:0, rit:1 },
+      { name:'回避侦测', school:'防护', cast:'1动作', range:'触碰', dur:'8小时', desc:'目标免疫探知和魔法追踪', conc:0, rit:0 },
+      { name:'召唤动物', school:'咒法', cast:'1动作', range:'60尺', dur:'1小时', desc:'召唤野兽助战', conc:1, rit:0 }
+    ],
+    4: [
+      { name:'行动自如', school:'防护', cast:'1动作', range:'触碰', dur:'1小时', desc:'无视困难地形和魔法束缚', conc:0, rit:0 },
+      { name:'生物定位术', school:'预言', cast:'1动作', range:'自身', dur:'1小时', desc:'感知1000尺内特定生物方向（标志性）', conc:1, rit:0 },
+      { name:'石肤术', school:'变化', cast:'1动作', range:'触碰', dur:'1小时', desc:'非魔法钝击/穿刺/挥砍抗性', conc:1, rit:0 },
+      { name:'自然守卫', school:'变化', cast:'1动作', range:'自身', dur:'1分钟', desc:'变身自然形态，远程优势+困难地形（标志性）', conc:1, rit:0 },
+      { name:'高等隐形术', school:'幻术', cast:'1动作', range:'触碰', dur:'1分钟', desc:'隐形且攻击不解除', conc:1, rit:0 }
+    ],
+    5: [
+      { name:'迅捷箭袋', school:'变化', cast:'1附赠', range:'触碰', dur:'1分钟', desc:'箭袋每回合免费额外2箭（标志性）', conc:1, rit:0 },
+      { name:'树跃术', school:'咒法', cast:'1动作', range:'自身', dur:'1分钟', desc:'每回合附赠动作通过树间传送（标志性）', conc:1, rit:0 },
+      { name:'群体疗伤术', school:'防护', cast:'1动作', range:'60尺', dur:'立即', desc:'6个生物各恢复3d8+调整值', conc:0, rit:0 },
+      { name:'死者复活', school:'死灵', cast:'1小时', range:'触碰', dur:'立即', desc:'复活死亡≤10天生物', conc:0, rit:0 },
+      { name:'钢风斩', school:'咒法', cast:'1动作', range:'30尺', dur:'立即', desc:'传送+近战攻击至多5个目标，每击6d10力场（标志性）', conc:0, rit:0 }
+    ]
+  },
+  // ===== 术士 Sorcerer =====
+  sorcerer: {
+    0: [
+      { name:'火焰箭', school:'塑能', cast:'1动作', range:'120尺', dur:'立即', desc:'远程法术攻击，1d10火焰伤害（标志性）', conc:0, rit:0 },
+      { name:'冷冻射线', school:'塑能', cast:'1动作', range:'60尺', dur:'立即', desc:'远程法术攻击，1d8寒冷伤害、目标减速10尺', conc:0, rit:0 },
+      { name:'电爪', school:'塑能', cast:'1动作', range:'触碰', dur:'立即', desc:'近战法术攻击，1d8闪电伤害、目标无法反应', conc:0, rit:0 },
+      { name:'恶毒嘲笑', school:'惑控', cast:'1动作', range:'60尺', dur:'立即', desc:'1d4心灵伤害+下次攻击劣势', conc:0, rit:0 },
+      { name:'魔法伎俩', school:'变化', cast:'1动作', range:'10尺', dur:'1小时', desc:'小法术效果', conc:0, rit:0 },
+      { name:'传讯术', school:'变化', cast:'1动作', range:'120尺', dur:'1轮', desc:'悄悄传话', conc:0, rit:0 },
+      { name:'鸣雷破', school:'塑能', cast:'1动作', range:'自身(5尺)', dur:'立即', desc:'周围5尺体质豁免，失败1d6雷鸣伤害', conc:0, rit:0 },
+      { name:'法师之手', school:'咒法', cast:'1动作', range:'30尺', dur:'1分钟', desc:'幽灵手操纵物体', conc:0, rit:0 }
+    ],
+    1: [
+      { name:'魔法飞弹', school:'塑能', cast:'1动作', range:'120尺', dur:'立即', desc:'3/4/5枚飞弹，每枚1d4+1力场伤害，必中（标志性）', conc:0, rit:0 },
+      { name:'法师护甲', school:'防护', cast:'1动作', range:'触碰', dur:'8小时', desc:'AC=13+敏捷调整', conc:0, rit:0 },
+      { name:'护盾术', school:'防护', cast:'1反应', range:'自身', dur:'1轮', desc:'反应+5AC，免疫魔法飞弹（标志性）', conc:0, rit:0 },
+      { name:'燃烧之手', school:'塑能', cast:'1动作', range:'自身(15尺锥)', dur:'立即', desc:'15尺锥3d6火焰伤害', conc:0, rit:0 },
+      { name:'繁彩球', school:'塑能', cast:'1动作', range:'90尺', dur:'立即', desc:'远程法术攻击，3d8任选伤害类型（标志性）', conc:0, rit:0 },
+      { name:'羽落术', school:'变化', cast:'1反应', range:'60尺', dur:'1分钟', desc:'5生物缓降', conc:0, rit:0 },
+      { name:'雷鸣波', school:'塑能', cast:'1动作', range:'自身(15尺)', dur:'立即', desc:'15尺立方2d8雷鸣+推开10尺', conc:0, rit:0 }
+    ],
+    2: [
+      { name:'灼热射线', school:'塑能', cast:'1动作', range:'120尺', dur:'立即', desc:'3道火焰射线，每道2d6火焰伤害（标志性）', conc:0, rit:0 },
+      { name:'迷踪步', school:'咒法', cast:'1附赠', range:'自身', dur:'立即', desc:'附赠传送30尺（标志性）', conc:0, rit:0 },
+      { name:'镜影术', school:'幻术', cast:'1动作', range:'自身', dur:'1分钟', desc:'3个分身，攻击可能打中分身而miss（标志性）', conc:0, rit:0 },
+      { name:'暗示术', school:'惑控', cast:'1动作', range:'30尺', dur:'8小时', desc:'影响目标执行合理行动', conc:1, rit:0 },
+      { name:'隐形术', school:'幻术', cast:'1动作', range:'触碰', dur:'1小时', desc:'隐形（攻击/施法解除）', conc:1, rit:0 },
+      { name:'人类定身术', school:'惑控', cast:'1动作', range:'60尺', dur:'1分钟', desc:'麻痹人形目标', conc:1, rit:0 },
+      { name:'强化属性', school:'变化', cast:'1动作', range:'触碰', dur:'1小时', desc:'一项属性检定优势', conc:1, rit:0 }
+    ],
+    3: [
+      { name:'火球术', school:'塑能', cast:'1动作', range:'150尺', dur:'立即', desc:'20尺半径8d6火焰伤害，最经典法术（标志性）', conc:0, rit:0 },
+      { name:'闪电束', school:'塑能', cast:'1动作', range:'自身(100尺线)', dur:'立即', desc:'100尺线8d6闪电伤害', conc:0, rit:0 },
+      { name:'加速术', school:'变化', cast:'1动作', range:'30尺', dur:'1分钟', desc:'目标速度x2、+2AC、敏捷豁免优势、额外动作', conc:1, rit:0 },
+      { name:'飞行术', school:'变化', cast:'1动作', range:'触碰', dur:'10分钟', desc:'飞行速度60尺', conc:1, rit:0 },
+      { name:'缓慢术', school:'变化', cast:'1动作', range:'120尺', dur:'1分钟', desc:'6个目标速度减半、AC-2、敏捷劣势、无法反应（标志性）', conc:1, rit:0 },
+      { name:'解除魔法', school:'防护', cast:'1动作', range:'120尺', dur:'立即', desc:'解除法术效应', conc:0, rit:0 },
+      { name:'防护能量', school:'防护', cast:'1动作', range:'触碰', dur:'1小时', desc:'对一种元素伤害抗性', conc:1, rit:0 }
+    ],
+    4: [
+      { name:'枯萎术', school:'死灵', cast:'1动作', range:'30尺', dur:'立即', desc:'体质豁免，失败8d8黯蚀伤害', conc:0, rit:0 },
+      { name:'任意门', school:'咒法', cast:'1动作', range:'500尺', dur:'立即', desc:'传送到500尺内可见位置', conc:0, rit:0 },
+      { name:'高等隐形术', school:'幻术', cast:'1动作', range:'触碰', dur:'1分钟', desc:'隐形+攻击不解除', conc:1, rit:0 },
+      { name:'冰风暴', school:'塑能', cast:'1动作', range:'300尺', dur:'立即', desc:'20尺半径2d8钝击+4d6寒冷，困难地形', conc:0, rit:0 },
+      { name:'变形术', school:'变化', cast:'1动作', range:'60尺', dur:'1小时', desc:'变野兽（CR≤等级）', conc:1, rit:0 },
+      { name:'石肤术', school:'变化', cast:'1动作', range:'触碰', dur:'1小时', desc:'非魔法武器伤害抗性', conc:1, rit:0 }
+    ],
+    5: [
+      { name:'寒冰锥', school:'塑能', cast:'1动作', range:'自身(60尺锥)', dur:'立即', desc:'60尺锥8d8寒冷伤害（标志性）', conc:0, rit:0 },
+      { name:'死云术', school:'咒法', cast:'1动作', range:'120尺', dur:'10分钟', desc:'20尺毒云，进入5d8毒素伤害（标志性）', conc:1, rit:0 },
+      { name:'支配人类', school:'惑控', cast:'1动作', range:'60尺', dur:'1分钟', desc:'控制一个人形生物', conc:1, rit:0 },
+      { name:'心灵遥控', school:'变化', cast:'1动作', range:'60尺', dur:'10分钟', desc:'念力移物（标志性）', conc:1, rit:0 },
+      { name:'石墙术', school:'塑能', cast:'1动作', range:'120尺', dur:'10分钟', desc:'创造石墙阻挡/困敌', conc:1, rit:0 },
+      { name:'造物术', school:'幻术', cast:'1分钟', range:'30尺', dur:'多种', desc:'创造临时物品', conc:0, rit:0 }
+    ],
+    6: [
+      { name:'解离术', school:'变化', cast:'1动作', range:'60尺', dur:'立即', desc:'10d6+40力场伤害，降至0HP化为灰烬（标志性）', conc:0, rit:0 },
+      { name:'阳炎射线', school:'塑能', cast:'1动作', range:'自身(60尺线)', dur:'1分钟', desc:'每回合6d8光耀伤害光束', conc:1, rit:0 },
+      { name:'群体暗示术', school:'惑控', cast:'1动作', range:'60尺', dur:'24小时', desc:'至多12个生物执行行动', conc:0, rit:0 },
+      { name:'奥术门', school:'咒法', cast:'1动作', range:'500尺', dur:'10分钟', desc:'开启双向传送门', conc:1, rit:0 },
+      { name:'环法', school:'预言', cast:'1动作', range:'自身', dur:'立即', desc:'预窥未来，获得一个d20预投值（标志性）', conc:0, rit:0 }
+    ],
+    7: [
+      { name:'反重力', school:'变化', cast:'1动作', range:'100尺', dur:'1分钟', desc:'50尺圆柱内重力反转', conc:1, rit:0 },
+      { name:'延迟爆裂火球', school:'塑能', cast:'1动作', range:'150尺', dur:'1分钟', desc:'放置后引爆，每延迟回合+1d6，最高12d6（标志性）', conc:1, rit:0 },
+      { name:'传送术', school:'咒法', cast:'1动作', range:'10尺', dur:'1轮', desc:'传送至同一位面任意位置', conc:0, rit:0 },
+      { name:'位面转移', school:'咒法', cast:'1动作', range:'触碰', dur:'立即', desc:'传送至指定存在位面', conc:0, rit:0 }
+    ],
+    8: [
+      { name:'阳炎爆', school:'塑能', cast:'1动作', range:'150尺', dur:'立即', desc:'60尺半径12d6光耀+1分钟目盲', conc:0, rit:0 },
+      { name:'弱智术', school:'惑控', cast:'1动作', range:'150尺', dur:'立即', desc:'智力变为1，无法施法', conc:0, rit:0 },
+      { name:'地震术', school:'塑能', cast:'1动作', range:'500尺', dur:'1分钟', desc:'100尺范围地震', conc:1, rit:0 },
+      { name:'控制天气', school:'变化', cast:'10分钟', range:'自身(5里)', dur:'8小时', desc:'改变区域内天气（标志性）', conc:1, rit:0 }
+    ],
+    9: [
+      { name:'祈愿术', school:'咒法', cast:'1动作', range:'自身', dur:'立即', desc:'复制任意8环以下法术，或实现愿望（被DM限制）——最强大法术（标志性）', conc:0, rit:0 },
+      { name:'流星爆', school:'塑能', cast:'1动作', range:'1里', dur:'立即', desc:'4颗流星，每颗40尺半径20d6火焰+20d6钝击（标志性）', conc:0, rit:0 },
+      { name:'时间停止', school:'变化', cast:'1动作', range:'自身', dur:'2-5轮', desc:'获得1d4+1额外回合（标志性）', conc:0, rit:0 }
+    ]
+  },
+  // ===== 魔契师 Warlock =====
+  warlock: {
+    0: [
+      { name:'魔能爆', school:'塑能', cast:'1动作', range:'120尺', dur:'立即', desc:'远程法术攻击，1d10力场伤害（标志性，随等级多光束）', conc:0, rit:0 },
+      { name:'冷冻射线', school:'塑能', cast:'1动作', range:'60尺', dur:'立即', desc:'1d8寒冷伤害+减速10尺', conc:0, rit:0 },
+      { name:'恶毒嘲笑', school:'惑控', cast:'1动作', range:'60尺', dur:'立即', desc:'1d4心灵伤害+下次攻击劣势', conc:0, rit:0 },
+      { name:'魔法伎俩', school:'变化', cast:'1动作', range:'10尺', dur:'1小时', desc:'小魔法效果', conc:0, rit:0 },
+      { name:'传讯术', school:'变化', cast:'1动作', range:'120尺', dur:'1轮', desc:'悄悄传话', conc:0, rit:0 },
+      { name:'毒气喷涌', school:'死灵', cast:'1动作', range:'30尺', dur:'立即', desc:'体质豁免，1d12毒素伤害', conc:0, rit:0 },
+      { name:'克敌先击', school:'预言', cast:'1动作', range:'自身', dur:'立即', desc:'下次攻击检定优势+额外光耀伤害', conc:0, rit:0 }
+    ],
+    1: [
+      { name:'脆弱诅咒', school:'死灵', cast:'1附赠', range:'90尺', dur:'1小时', desc:'目标每次攻击+1d6黯蚀伤害，某属性豁免劣势（标志性）', conc:1, rit:0 },
+      { name:'艾嘉西斯之铠', school:'防护', cast:'1动作', range:'自身', dur:'1小时', desc:'获得5/10/15临时生命，被近战命中反击2d8/3d8寒冷（标志性）', conc:0, rit:0 },
+      { name:'地狱叱喝', school:'塑能', cast:'1反应', range:'60尺', dur:'立即', desc:'受到伤害后反应，目标敏捷豁免2d10火焰（标志性）', conc:0, rit:0 },
+      { name:'臂长术', school:'变化', cast:'1动作', range:'自身', dur:'1分钟', desc:'触及+5尺，可以远程触碰攻击', conc:1, rit:0 },
+      { name:'女巫之箭', school:'塑能', cast:'1动作', range:'30尺', dur:'1分钟', desc:'闪电持续连接目标，每回合1d12伤害', conc:1, rit:0 },
+      { name:'不谐低语', school:'惑控', cast:'1动作', range:'60尺', dur:'立即', desc:'3d6心灵伤害，目标须用反应远离你', conc:0, rit:0 }
+    ],
+    2: [
+      { name:'黑暗术', school:'塑能', cast:'1动作', range:'60尺', dur:'10分钟', desc:'15尺半径黑暗（魔鬼视觉可看穿）（标志性组合）', conc:1, rit:0 },
+      { name:'迷踪步', school:'咒法', cast:'1附赠', range:'自身', dur:'立即', desc:'附赠传送30尺', conc:0, rit:0 },
+      { name:'心灵长枪', school:'惑控', cast:'1动作', range:'60尺', dur:'立即', desc:'意志豁免，3d8心灵伤害+1回合无法行动', conc:0, rit:0 },
+      { name:'暗示术', school:'惑控', cast:'1动作', range:'30尺', dur:'8小时', desc:'影响目标行动', conc:1, rit:0 },
+      { name:'隐形术', school:'幻术', cast:'1动作', range:'触碰', dur:'1小时', desc:'隐形', conc:1, rit:0 },
+      { name:'镜影术', school:'幻术', cast:'1动作', range:'自身', dur:'1分钟', desc:'3个分身', conc:0, rit:0 },
+      { name:'灼热射线', school:'塑能', cast:'1动作', range:'120尺', dur:'立即', desc:'3道火焰射线，每道2d6', conc:0, rit:0 }
+    ],
+    3: [
+      { name:'哈达之欲', school:'咒法', cast:'1动作', range:'150尺', dur:'1分钟', desc:'20尺黑暗触手区域，困难地形+每回合3d6黯蚀（标志性）', conc:1, rit:0 },
+      { name:'反制法术', school:'防护', cast:'1反应', range:'60尺', dur:'立即', desc:'打断目标法术（标志性）', conc:0, rit:0 },
+      { name:'解除魔法', school:'防护', cast:'1动作', range:'120尺', dur:'立即', desc:'解除法术效应', conc:0, rit:0 },
+      { name:'飞行术', school:'变化', cast:'1动作', range:'触碰', dur:'10分钟', desc:'飞行速度60尺', conc:1, rit:0 },
+      { name:'火球术', school:'塑能', cast:'1动作', range:'150尺', dur:'立即', desc:'20尺半径8d6火焰伤害', conc:0, rit:0 },
+      { name:'恐惧术', school:'幻术', cast:'1动作', range:'自身(30尺锥)', dur:'1分钟', desc:'锥形生物恐慌', conc:1, rit:0 },
+      { name:'高等魔能召唤', school:'咒法', cast:'1动作', range:'90尺', dur:'1小时', desc:'召唤魔物助战（标志性）', conc:1, rit:0 }
+    ],
+    4: [
+      { name:'放逐术', school:'防护', cast:'1动作', range:'60尺', dur:'1分钟', desc:'目标被送入无害半位面', conc:1, rit:0 },
+      { name:'枯萎术', school:'死灵', cast:'1动作', range:'30尺', dur:'立即', desc:'8d8黯蚀伤害', conc:0, rit:0 },
+      { name:'任意门', school:'咒法', cast:'1动作', range:'500尺', dur:'立即', desc:'传送500尺', conc:0, rit:0 },
+      { name:'西尔瓦斯塔的寒冰', school:'塑能', cast:'1动作', range:'300尺', dur:'立即', desc:'10尺半径2d8钝击+4d6寒冷+困难地形', conc:0, rit:0 },
+      { name:'魅影杀手', school:'幻术', cast:'1动作', range:'120尺', dur:'1分钟', desc:'目标恐惧+每回合4d10心灵伤害（标志性）', conc:1, rit:0 }
+    ],
+    5: [
+      { name:'负能量洪流', school:'死灵', cast:'1动作', range:'自身(60尺锥)', dur:'立即', desc:'60尺锥8d8黯蚀伤害，杀敌创建僵尸（标志性）', conc:0, rit:0 },
+      { name:'支配人类', school:'惑控', cast:'1动作', range:'60尺', dur:'1分钟', desc:'控制人形生物', conc:1, rit:0 },
+      { name:'死者复活', school:'死灵', cast:'1小时', range:'触碰', dur:'立即', desc:'复活死亡≤10天生物', conc:0, rit:0 },
+      { name:'心灵遥控', school:'变化', cast:'1动作', range:'60尺', dur:'10分钟', desc:'念力移物', conc:1, rit:0 },
+      { name:'异界探知', school:'预言', cast:'1分钟', range:'自身', dur:'1分钟', desc:'与异界存在沟通', conc:0, rit:1 },
+      { name:'突触静止', school:'惑控', cast:'1动作', range:'120尺', dur:'1分钟', desc:'智力豁免，失败每回合3d8心灵+无法行动（标志性）', conc:1, rit:0 }
+    ],
+    6: [
+      { name:'精神监狱', school:'幻术', cast:'1动作', range:'60尺', dur:'1分钟', desc:'目标被囚禁在幻象中，每回合5d10心灵伤害（标志性）', conc:1, rit:0 },
+      { name:'群体暗示术', school:'惑控', cast:'1动作', range:'60尺', dur:'24小时', desc:'至多12个生物执行行动', conc:0, rit:0 },
+      { name:'解离术', school:'变化', cast:'1动作', range:'60尺', dur:'立即', desc:'10d6+40力场，HP至0化为灰烬', conc:0, rit:0 },
+      { name:'奥术门', school:'咒法', cast:'1动作', range:'500尺', dur:'10分钟', desc:'双向传送门', conc:1, rit:0 },
+      { name:'环法', school:'预言', cast:'1动作', range:'自身', dur:'立即', desc:'预投一个d20结果', conc:0, rit:0 }
+    ],
+    7: [
+      { name:'力场监牢', school:'塑能', cast:'1动作', range:'100尺', dur:'1小时', desc:'不可摧毁的力场牢笼（标志性）', conc:0, rit:0 },
+      { name:'手指死亡', school:'死灵', cast:'1动作', range:'60尺', dur:'立即', desc:'体质豁免，失败7d8+30黯蚀，至0HP即死（标志性）', conc:0, rit:0 },
+      { name:'异界传送', school:'咒法', cast:'1动作', range:'自身', dur:'立即', desc:'传送至存在位面', conc:0, rit:0 },
+      { name:'魔力视野', school:'预言', cast:'1动作', range:'自身', dur:'1小时', desc:'看穿隐形和魔法效果', conc:0, rit:0 }
+    ],
+    8: [
+      { name:'支配怪物', school:'惑控', cast:'1动作', range:'60尺', dur:'1小时', desc:'控制任意生物', conc:1, rit:0 },
+      { name:'弱智术', school:'惑控', cast:'1动作', range:'150尺', dur:'立即', desc:'智力变为1', conc:0, rit:0 },
+      { name:'反魔法力场', school:'防护', cast:'1动作', range:'自身(10尺)', dur:'1小时', desc:'10尺内魔法无效', conc:1, rit:0 },
+      { name:'半位面', school:'咒法', cast:'1动作', range:'60尺', dur:'1小时', desc:'创造临时半位面', conc:0, rit:0 },
+      { name:'疯狂黑暗', school:'塑能', cast:'1动作', range:'150尺', dur:'10分钟', desc:'60尺黑暗球体，任何光亮无法穿透（标志性）', conc:1, rit:0 }
+    ],
+    9: [
+      { name:'预警术', school:'预言', cast:'1分钟', range:'触碰', dur:'8小时', desc:'预知危险，先攻优势、免突袭', conc:0, rit:0 },
+      { name:'完全变形术', school:'变化', cast:'1动作', range:'自身', dur:'1小时', desc:'变为任意生物', conc:1, rit:0 },
+      { name:'异界之门', school:'咒法', cast:'1动作', range:'60尺', dur:'1分钟', desc:'开启通往存在的传送门', conc:1, rit:0 },
+      { name:'律令死亡', school:'惑控', cast:'1动作', range:'60尺', dur:'立即', desc:'≤100HP目标直接死亡（标志性）', conc:0, rit:0 }
+    ]
+  },
+  // ===== 法师 Wizard =====
+  wizard: {
+    0: [
+      { name:'火焰箭', school:'塑能', cast:'1动作', range:'120尺', dur:'立即', desc:'远程法术攻击，1d10火焰', conc:0, rit:0 },
+      { name:'冷冻射线', school:'塑能', cast:'1动作', range:'60尺', dur:'立即', desc:'1d8寒冷+减速10尺', conc:0, rit:0 },
+      { name:'电爪', school:'塑能', cast:'1动作', range:'触碰', dur:'立即', desc:'近战法术攻击，1d8闪电+目标无法反应', conc:0, rit:0 },
+      { name:'法师之手', school:'咒法', cast:'1动作', range:'30尺', dur:'1分钟', desc:'幽灵手操控物体（标志性）', conc:0, rit:0 },
+      { name:'魔法伎俩', school:'变化', cast:'1动作', range:'10尺', dur:'1小时', desc:'小法术效果', conc:0, rit:0 },
+      { name:'光亮术', school:'塑能', cast:'1动作', range:'触碰', dur:'1小时', desc:'物体发光', conc:0, rit:0 },
+      { name:'传讯术', school:'变化', cast:'1动作', range:'120尺', dur:'1轮', desc:'悄悄传话', conc:0, rit:0 },
+      { name:'酸液飞溅', school:'咒法', cast:'1动作', range:'60尺', dur:'立即', desc:'2目标敏捷豁免，失败1d6强酸', conc:0, rit:0 }
+    ],
+    1: [
+      { name:'魔法飞弹', school:'塑能', cast:'1动作', range:'120尺', dur:'立即', desc:'3枚飞弹各1d4+1力场，必中（标志性）', conc:0, rit:0 },
+      { name:'法师护甲', school:'防护', cast:'1动作', range:'触碰', dur:'8小时', desc:'AC=13+敏捷调整（标志性）', conc:0, rit:0 },
+      { name:'护盾术', school:'防护', cast:'1反应', range:'自身', dur:'1轮', desc:'反应+5AC，免疫魔法飞弹（标志性）', conc:0, rit:0 },
+      { name:'侦测魔法', school:'预言', cast:'1动作', range:'自身', dur:'10分钟', desc:'感知30尺内魔法灵光（标志性）', conc:1, rit:1 },
+      { name:'鉴定术', school:'预言', cast:'1分钟', range:'触碰', dur:'立即', desc:'了解魔法物品属性（标志性）', conc:0, rit:1 },
+      { name:'油腻术', school:'咒法', cast:'1动作', range:'60尺', dur:'1分钟', desc:'10尺范围油脂，敏捷豁免否则摔倒', conc:0, rit:0 },
+      { name:'睡眠术', school:'惑控', cast:'1动作', range:'90尺', dur:'1分钟', desc:'5d8HP生物入睡', conc:0, rit:0 },
+      { name:'获得魔宠', school:'咒法', cast:'1小时', range:'10尺', dur:'立即', desc:'召唤小魔宠（标志性）', conc:0, rit:1 },
+      { name:'彩喷射', school:'幻术', cast:'1动作', range:'自身(15尺锥)', dur:'1轮', desc:'15尺锥6d10HP生物致盲', conc:0, rit:0 },
+      { name:'燃烧之手', school:'塑能', cast:'1动作', range:'自身(15尺锥)', dur:'立即', desc:'15尺锥3d6火焰伤害', conc:0, rit:0 },
+      { name:'塔莎狂笑术', school:'惑控', cast:'1动作', range:'30尺', dur:'1分钟', desc:'目标狂笑倒地，无法行动', conc:1, rit:0 }
+    ],
+    2: [
+      { name:'迷踪步', school:'咒法', cast:'1附赠', range:'自身', dur:'立即', desc:'附赠传送30尺', conc:0, rit:0 },
+      { name:'蛛网术', school:'咒法', cast:'1动作', range:'60尺', dur:'1小时', desc:'20尺立方蛛网，束缚+困难地形（标志性）', conc:1, rit:0 },
+      { name:'隐形术', school:'幻术', cast:'1动作', range:'触碰', dur:'1小时', desc:'隐形', conc:1, rit:0 },
+      { name:'镜影术', school:'幻术', cast:'1动作', range:'自身', dur:'1分钟', desc:'3个分身错开攻击', conc:0, rit:0 },
+      { name:'灼热射线', school:'塑能', cast:'1动作', range:'120尺', dur:'立即', desc:'3道火焰射线×2d6', conc:0, rit:0 },
+      { name:'暗示术', school:'惑控', cast:'1动作', range:'30尺', dur:'8小时', desc:'影响目标行动', conc:1, rit:0 },
+      { name:'人类定身术', school:'惑控', cast:'1动作', range:'60尺', dur:'1分钟', desc:'麻痹人形生物', conc:1, rit:0 },
+      { name:'浮空术', school:'变化', cast:'1动作', range:'60尺', dur:'10分钟', desc:'目标浮空20尺', conc:1, rit:0 },
+      { name:'朦胧术', school:'幻术', cast:'1动作', range:'自身', dur:'1分钟', desc:'自己身形模糊，攻击劣势', conc:1, rit:0 },
+      { name:'虚空步', school:'咒法', cast:'1动作', range:'自身', dur:'10分钟', desc:'附赠传送10尺（标志性）', conc:1, rit:0 }
+    ],
+    3: [
+      { name:'火球术', school:'塑能', cast:'1动作', range:'150尺', dur:'立即', desc:'20尺半径8d6火焰伤害——最标志性法术', conc:0, rit:0 },
+      { name:'闪电束', school:'塑能', cast:'1动作', range:'自身(100尺线)', dur:'立即', desc:'100尺线8d6闪电伤害', conc:0, rit:0 },
+      { name:'加速术', school:'变化', cast:'1动作', range:'30尺', dur:'1分钟', desc:'速度x2、+2AC、额外动作', conc:1, rit:0 },
+      { name:'飞行术', school:'变化', cast:'1动作', range:'触碰', dur:'10分钟', desc:'飞行速度60尺', conc:1, rit:0 },
+      { name:'缓慢术', school:'变化', cast:'1动作', range:'120尺', dur:'1分钟', desc:'6目标速度减半、AC-2、无法反应', conc:1, rit:0 },
+      { name:'反制法术', school:'防护', cast:'1反应', range:'60尺', dur:'立即', desc:'打断目标法术（标志性）', conc:0, rit:0 },
+      { name:'解除魔法', school:'防护', cast:'1动作', range:'120尺', dur:'立即', desc:'解除法术效应', conc:0, rit:0 },
+      { name:'闪现术', school:'变化', cast:'1动作', range:'自身', dur:'1分钟', desc:'每回合50%概率闪入以太位面', conc:0, rit:0 },
+      { name:'李欧蒙小屋', school:'咒法', cast:'1分钟', range:'自身(10尺)', dur:'8小时', desc:'无敌半球安全休息（标志性）', conc:0, rit:1 },
+      { name:'假死术', school:'变化', cast:'1动作', range:'自身', dur:'1小时', desc:'假死状态骗过一切', conc:0, rit:1 }
+    ],
+    4: [
+      { name:'任意门', school:'咒法', cast:'1动作', range:'500尺', dur:'立即', desc:'传送到500尺内可见位置', conc:0, rit:0 },
+      { name:'变形术', school:'变化', cast:'1动作', range:'60尺', dur:'1小时', desc:'变野兽CR≤等级', conc:1, rit:0 },
+      { name:'高等隐形术', school:'幻术', cast:'1动作', range:'触碰', dur:'1分钟', desc:'隐形+攻击不解除', conc:1, rit:0 },
+      { name:'枯萎术', school:'死灵', cast:'1动作', range:'30尺', dur:'立即', desc:'8d8黯蚀伤害', conc:0, rit:0 },
+      { name:'冰风暴', school:'塑能', cast:'1动作', range:'300尺', dur:'立即', desc:'20尺半径2d8钝击+4d6寒冷', conc:0, rit:0 },
+      { name:'火墙术', school:'塑能', cast:'1动作', range:'120尺', dur:'1分钟', desc:'60尺火墙，穿过5d8火焰（标志性）', conc:1, rit:0 },
+      { name:'秘法眼', school:'预言', cast:'1动作', range:'30尺', dur:'1小时', desc:'隐形飞行魔法眼探路（标志性）', conc:1, rit:0 },
+      { name:'石肤术', school:'变化', cast:'1动作', range:'触碰', dur:'1小时', desc:'非魔法武器伤害抗性', conc:1, rit:0 },
+      { name:'困惑术', school:'惑控', cast:'1动作', range:'90尺', dur:'1分钟', desc:'10尺半径生物行为随机化（标志性）', conc:1, rit:0 },
+      { name:'魔邓肯忠犬', school:'咒法', cast:'1动作', range:'30尺', dur:'8小时', desc:'隐形守卫犬，30尺内敌人警告+4d8穿刺', conc:0, rit:0 }
+    ],
+    5: [
+      { name:'寒冰锥', school:'塑能', cast:'1动作', range:'自身(60尺锥)', dur:'立即', desc:'60尺锥8d8寒冷伤害', conc:0, rit:0 },
+      { name:'死云术', school:'咒法', cast:'1动作', range:'120尺', dur:'10分钟', desc:'20尺毒云，进入5d8毒素', conc:1, rit:0 },
+      { name:'石墙术', school:'塑能', cast:'1动作', range:'120尺', dur:'10分钟', desc:'创造石墙', conc:1, rit:0 },
+      { name:'力场墙', school:'塑能', cast:'1动作', range:'120尺', dur:'10分钟', desc:'隐形力场墙（标志性）', conc:1, rit:0 },
+      { name:'心灵遥控', school:'变化', cast:'1动作', range:'60尺', dur:'10分钟', desc:'念力远程移物', conc:1, rit:0 },
+      { name:'支配人类', school:'惑控', cast:'1动作', range:'60尺', dur:'1分钟', desc:'控制人形生物', conc:1, rit:0 },
+      { name:'毕格比之手', school:'塑能', cast:'1动作', range:'120尺', dur:'1分钟', desc:'巨力手掌推动/抓取/攻击（标志性）', conc:1, rit:0 },
+      { name:'怪物定身术', school:'惑控', cast:'1动作', range:'90尺', dur:'1分钟', desc:'麻痹任意生物（标志性）', conc:1, rit:0 },
+      { name:'造物术', school:'幻术', cast:'1分钟', range:'30尺', dur:'多种', desc:'创造临时物品（标志性）', conc:0, rit:0 },
+      { name:'传送法阵', school:'咒法', cast:'1分钟', range:'10尺', dur:'1轮', desc:'永久传送门（需一年连续施放）', conc:0, rit:0 }
+    ],
+    6: [
+      { name:'解离术', school:'变化', cast:'1动作', range:'60尺', dur:'立即', desc:'10d6+40力场伤害，HP至0化为灰烬', conc:0, rit:0 },
+      { name:'阳炎射线', school:'塑能', cast:'1动作', range:'自身', dur:'1分钟', desc:'每回合6d8光耀光束', conc:1, rit:0 },
+      { name:'法球陷阱', school:'咒法', cast:'1分钟', range:'60尺', dur:'1小时', desc:'创造漂浮魔法陷阱球', conc:0, rit:0 },
+      { name:'召唤魔宠', school:'咒法', cast:'1动作', range:'90尺', dur:'1小时', desc:'召唤高等魔宠助战', conc:1, rit:0 },
+      { name:'奥术门', school:'咒法', cast:'1动作', range:'500尺', dur:'10分钟', desc:'双向传送门', conc:1, rit:0 },
+      { name:'群体暗示术', school:'惑控', cast:'1动作', range:'60尺', dur:'24小时', desc:'12个生物执行行动', conc:0, rit:0 },
+      { name:'环法', school:'预言', cast:'1动作', range:'自身', dur:'立即', desc:'预投一个d20结果备用', conc:0, rit:0 },
+      { name:'石化术', school:'变化', cast:'1动作', range:'60尺', dur:'1分钟', desc:'目标被逐渐石化（标志性）', conc:1, rit:0 },
+      { name:'可移动豪宅', school:'咒法', cast:'1分钟', range:'300尺', dur:'24小时', desc:'创造异次元豪华住宅', conc:0, rit:0 }
+    ],
+    7: [
+      { name:'延迟爆裂火球', school:'塑能', cast:'1动作', range:'150尺', dur:'1分钟', desc:'放置后引爆，最高12d6火焰伤害', conc:1, rit:0 },
+      { name:'传送术', school:'咒法', cast:'1动作', range:'10尺', dur:'1轮', desc:'传送至同一位面任意位置', conc:0, rit:0 },
+      { name:'反重力', school:'变化', cast:'1动作', range:'100尺', dur:'1分钟', desc:'50尺圆柱内重力反转', conc:1, rit:0 },
+      { name:'力场笼', school:'塑能', cast:'1动作', range:'100尺', dur:'1小时', desc:'不可摧毁的力场牢笼', conc:0, rit:0 },
+      { name:'幻境', school:'幻术', cast:'1动作', range:'500尺', dur:'24小时', desc:'创造具有视觉/声音/温度的任意场景（标志性）', conc:0, rit:0 },
+      { name:'拟像术', school:'幻术', cast:'12小时', range:'触碰', dur:'永久', desc:'创造生物的半真实复制体（标志性）', conc:0, rit:0 },
+      { name:'异界传送', school:'咒法', cast:'1动作', range:'自身', dur:'立即', desc:'传送到存在位面', conc:0, rit:0 },
+      { name:'手指死亡', school:'死灵', cast:'1动作', range:'60尺', dur:'立即', desc:'7d8+30黯蚀伤害，至0HP即死', conc:0, rit:0 }
+    ],
+    8: [
+      { name:'迷宫术', school:'咒法', cast:'1动作', range:'60尺', dur:'10分钟', desc:'目标送入迷宫，需智力检定DC20逃脱（标志性）', conc:1, rit:0 },
+      { name:'心智控制', school:'惑控', cast:'1动作', range:'60尺', dur:'8小时', desc:'完全控制目标生物', conc:1, rit:0 },
+      { name:'弱智术', school:'惑控', cast:'1动作', range:'150尺', dur:'立即', desc:'智力变1，无法施法', conc:0, rit:0 },
+      { name:'控制天气', school:'变化', cast:'10分钟', range:'自身(5里)', dur:'8小时', desc:'改变5里内天气', conc:1, rit:0 },
+      { name:'反魔法力场', school:'防护', cast:'1动作', range:'自身(10尺)', dur:'1小时', desc:'10尺内禁止魔法', conc:1, rit:0 },
+      { name:'半位面', school:'咒法', cast:'1动作', range:'60尺', dur:'1小时', desc:'创造临时半位面', conc:0, rit:0 },
+      { name:'阳炎爆', school:'塑能', cast:'1动作', range:'150尺', dur:'立即', desc:'60尺半径12d6光耀+目盲1分钟', conc:0, rit:0 },
+      { name:'克隆术', school:'死灵', cast:'1小时', range:'触碰', dur:'立即', desc:'创造备用躯体，死亡后灵魂转移（标志性）', conc:0, rit:0 }
+    ],
+    9: [
+      { name:'祈愿术', school:'咒法', cast:'1动作', range:'自身', dur:'立即', desc:'复制任意8环以下法术，或实现愿望——最强大的魔法（标志性）', conc:0, rit:0 },
+      { name:'流星爆', school:'塑能', cast:'1动作', range:'1里', dur:'立即', desc:'4颗流星，每颗40d6混合伤害', conc:0, rit:0 },
+      { name:'时间停止', school:'变化', cast:'1动作', range:'自身', dur:'2-5轮', desc:'获得1d4+1额外回合', conc:0, rit:0 },
+      { name:'预知术', school:'预言', cast:'1分钟', range:'自身', dur:'1小时', desc:'任意检定可替换为预投的d20值（标志性）', conc:0, rit:0 },
+      { name:'变形万物', school:'变化', cast:'1动作', range:'120尺', dur:'永久', desc:'永久改变物品/生物的形态（标志性）', conc:0, rit:0 },
+      { name:'完全变形术', school:'变化', cast:'1动作', range:'自身', dur:'1小时', desc:'变身为任意生物（CR≤等级）', conc:1, rit:0 },
+      { name:'棱镜墙', school:'防护', cast:'1动作', range:'60尺', dur:'10分钟', desc:'7层效果墙，穿过触发全部效果（标志性）', conc:0, rit:0 },
+      { name:'禁制术', school:'防护', cast:'1分钟', range:'触碰', dur:'永久', desc:'60尺半径永久禁魔区域', conc:0, rit:0 }
+    ]
+  },
+  // ===== 奇械师 Artificer (半施法者，最高5环) =====
+  artificer: {
+    0: [
+      { name:'神导术', school:'预言', cast:'1动作', range:'触碰', dur:'1分钟', desc:'技能检定+1d4（标志性）', conc:1, rit:0 },
+      { name:'火焰箭', school:'塑能', cast:'1动作', range:'120尺', dur:'立即', desc:'远程法术攻击，1d10火焰', conc:0, rit:0 },
+      { name:'法师之手', school:'咒法', cast:'1动作', range:'30尺', dur:'1分钟', desc:'幽灵手操纵物体', conc:0, rit:0 },
+      { name:'魔法伎俩', school:'变化', cast:'1动作', range:'10尺', dur:'1小时', desc:'小法术效果', conc:0, rit:0 },
+      { name:'传讯术', school:'变化', cast:'1动作', range:'120尺', dur:'1轮', desc:'悄悄传话', conc:0, rit:0 },
+      { name:'冷冻射线', school:'塑能', cast:'1动作', range:'60尺', dur:'立即', desc:'1d8寒冷伤害+减速10尺', conc:0, rit:0 }
+    ],
+    1: [
+      { name:'疗伤术', school:'防护', cast:'1动作', range:'触碰', dur:'立即', desc:'1d8+调整值治疗', conc:0, rit:0 },
+      { name:'侦测魔法', school:'预言', cast:'1动作', range:'自身', dur:'10分钟', desc:'感知30尺内魔法灵光', conc:1, rit:1 },
+      { name:'鉴定术', school:'预言', cast:'1分钟', range:'触碰', dur:'立即', desc:'了解魔法物品属性（标志性）', conc:0, rit:1 },
+      { name:'羽落术', school:'变化', cast:'1反应', range:'60尺', dur:'1分钟', desc:'5个生物缓降', conc:0, rit:0 },
+      { name:'油腻术', school:'咒法', cast:'1动作', range:'60尺', dur:'1分钟', desc:'10尺范围油脂地面', conc:0, rit:0 },
+      { name:'妖火', school:'塑能', cast:'1动作', range:'60尺', dur:'1分钟', desc:'目标发光，对其攻击优势', conc:1, rit:0 },
+      { name:'虚假生命', school:'死灵', cast:'1动作', range:'自身', dur:'1小时', desc:'获得1d4+4临时生命', conc:0, rit:0 }
+    ],
+    2: [
+      { name:'强化属性', school:'变化', cast:'1动作', range:'触碰', dur:'1小时', desc:'一项属性检定优势（标志性）', conc:1, rit:0 },
+      { name:'灼热金属', school:'变化', cast:'1动作', range:'60尺', dur:'1分钟', desc:'金属发红，每回合2d8火焰', conc:1, rit:0 },
+      { name:'魔化武器', school:'变化', cast:'1附赠', range:'触碰', dur:'1小时', desc:'武器+1加值（标志性）', conc:1, rit:0 },
+      { name:'隐形术', school:'幻术', cast:'1动作', range:'触碰', dur:'1小时', desc:'隐形', conc:1, rit:0 },
+      { name:'蛛网术', school:'咒法', cast:'1动作', range:'60尺', dur:'1小时', desc:'20尺立方蛛网束缚', conc:1, rit:0 },
+      { name:'次级复原术', school:'防护', cast:'1动作', range:'触碰', dur:'立即', desc:'解除目盲/耳聋/麻痹/中毒', conc:0, rit:0 }
+    ],
+    3: [
+      { name:'加速术', school:'变化', cast:'1动作', range:'30尺', dur:'1分钟', desc:'速度x2、+2AC、额外动作（标志性）', conc:1, rit:0 },
+      { name:'飞行术', school:'变化', cast:'1动作', range:'触碰', dur:'10分钟', desc:'飞行速度60尺', conc:1, rit:0 },
+      { name:'解除魔法', school:'防护', cast:'1动作', range:'120尺', dur:'立即', desc:'解除法术效应', conc:0, rit:0 },
+      { name:'防护能量', school:'防护', cast:'1动作', range:'触碰', dur:'1小时', desc:'一种元素伤害抗性', conc:1, rit:0 },
+      { name:'回生术', school:'死灵', cast:'1动作', range:'触碰', dur:'立即', desc:'复活1分钟内死亡角色（标志性）', conc:0, rit:0 },
+      { name:'闪现术', school:'变化', cast:'1动作', range:'自身', dur:'1分钟', desc:'每回合50%概率闪入以太', conc:0, rit:0 },
+      { name:'元素武器', school:'变化', cast:'1动作', range:'触碰', dur:'1小时', desc:'武器+1/+1d4元素伤害', conc:1, rit:0 }
+    ],
+    4: [
+      { name:'鬼斧神工', school:'变化', cast:'10分钟', range:'120尺', dur:'立即', desc:'瞬间制造物品（标志性）', conc:0, rit:0 },
+      { name:'石肤术', school:'变化', cast:'1动作', range:'触碰', dur:'1小时', desc:'非魔法武器伤害抗性', conc:1, rit:0 },
+      { name:'行动自如', school:'防护', cast:'1动作', range:'触碰', dur:'1小时', desc:'无视困难地形和束缚', conc:0, rit:0 },
+      { name:'秘法眼', school:'预言', cast:'1动作', range:'30尺', dur:'1小时', desc:'隐形探头探路', conc:1, rit:0 },
+      { name:'构装召唤术', school:'咒法', cast:'1动作', range:'90尺', dur:'1小时', desc:'召唤构装体助战（标志性）', conc:1, rit:0 }
+    ],
+    5: [
+      { name:'活化物件', school:'变化', cast:'1动作', range:'120尺', dur:'1分钟', desc:'10件物品活化战斗（标志性）', conc:1, rit:0 },
+      { name:'造物术', school:'幻术', cast:'1分钟', range:'30尺', dur:'多种', desc:'创造临时物品', conc:0, rit:0 },
+      { name:'石墙术', school:'塑能', cast:'1动作', range:'120尺', dur:'10分钟', desc:'创造石墙', conc:1, rit:0 },
+      { name:'高等复原术', school:'防护', cast:'1动作', range:'触碰', dur:'立即', desc:'解除多种负面状态', conc:0, rit:0 },
+      { name:'毕格比之手', school:'塑能', cast:'1动作', range:'120尺', dur:'1分钟', desc:'巨力手掌攻击/推动/抓取', conc:1, rit:0 }
+    ]
+  }
+};
+
+// Spell slot calculation (PHB2024 multiclass table)
+function getSpellSlots(classKey, level) {
+  const fullCasters = ['bard','cleric','druid','sorcerer','wizard'];
+  const halfCasters = ['paladin','ranger'];
+  const thirdCasters = ['artificer']; // Artificer rounds up for multiclass
+  const warlock = classKey === 'warlock';
+  
+  if (['barbarian','fighter','monk','rogue','bloodhunter'].includes(classKey)) {
+    return null; // Non-spellcasters (except EK/AT subclasses)
+  }
+  
+  // Warlock uses Pact Magic
+  if (warlock) {
+    const pactSlots = {
+      1:[1,1], 2:[2,1], 3:[0,2,2], 4:[0,2,2], 5:[0,0,2,3],
+      6:[0,0,2,3], 7:[0,0,0,2,4], 8:[0,0,0,2,4], 9:[0,0,0,0,2,5],
+      10:[0,0,0,0,2,5], 11:[0,0,0,0,3,5], 12:[0,0,0,0,3,5],
+      13:[0,0,0,0,3,5], 14:[0,0,0,0,3,5], 15:[0,0,0,0,3,5],
+      16:[0,0,0,0,3,5], 17:[0,0,0,0,4,5], 18:[0,0,0,0,4,5],
+      19:[0,0,0,0,4,5], 20:[0,0,0,0,4,5]
+    };
+    return { type:'pact', slots: pactSlots[level] || [1,1], maxLevel: Math.min(5, Math.ceil(level/2)) };
+  }
+  
+  // Full caster (Bard, Cleric, Druid, Sorcerer, Wizard)
+  if (fullCasters.includes(classKey)) {
+    const table = {
+      1:[2,0,0,0,0,0,0,0,0], 2:[3,0,0,0,0,0,0,0,0],
+      3:[4,2,0,0,0,0,0,0,0], 4:[4,3,0,0,0,0,0,0,0],
+      5:[4,3,2,0,0,0,0,0,0], 6:[4,3,3,0,0,0,0,0,0],
+      7:[4,3,3,1,0,0,0,0,0], 8:[4,3,3,2,0,0,0,0,0],
+      9:[4,3,3,3,1,0,0,0,0], 10:[4,3,3,3,2,0,0,0,0],
+      11:[4,3,3,3,2,1,0,0,0], 12:[4,3,3,3,2,1,0,0,0],
+      13:[4,3,3,3,2,1,1,0,0], 14:[4,3,3,3,2,1,1,0,0],
+      15:[4,3,3,3,2,1,1,1,0], 16:[4,3,3,3,2,1,1,1,0],
+      17:[4,3,3,3,2,1,1,1,1], 18:[4,3,3,3,3,1,1,1,1],
+      19:[4,3,3,3,3,2,1,1,1], 20:[4,3,3,3,3,2,2,1,1]
+    };
+    const maxSpellLevel = Math.min(9, Math.ceil(level/2));
+    return { type:'full', slots: table[level] || table[1], maxLevel: Math.min(9, maxSpellLevel) };
+  }
+  
+  // Half caster (Paladin, Ranger)
+  if (halfCasters.includes(classKey)) {
+    if (level < 2) return null; // No spells before level 2
+    const table = {
+      2:[2,0,0,0,0], 3:[3,0,0,0,0],
+      4:[3,0,0,0,0], 5:[4,2,0,0,0],
+      6:[4,2,0,0,0], 7:[4,3,0,0,0],
+      8:[4,3,0,0,0], 9:[4,3,2,0,0],
+      10:[4,3,2,0,0], 11:[4,3,3,0,0],
+      12:[4,3,3,0,0], 13:[4,3,3,1,0],
+      14:[4,3,3,1,0], 15:[4,3,3,2,0],
+      16:[4,3,3,2,0], 17:[4,3,3,3,1],
+      18:[4,3,3,3,1], 19:[4,3,3,3,2],
+      20:[4,3,3,3,2]
+    };
+    const maxSpellLevel = Math.min(5, Math.ceil(level/4));
+    return { type:'half', slots: table[level] || table[2], maxLevel: Math.min(5, maxSpellLevel) };
+  }
+  
+  // Artificer (half caster, rounds up)
+  if (classKey === 'artificer') {
+    const casterLevel = Math.ceil(level / 2);
+    // Use full caster table up to the effective caster level
+    const fullTable = {
+      1:[2,0,0,0,0,0], 2:[3,0,0,0,0,0],
+      3:[4,2,0,0,0,0], 4:[4,3,0,0,0,0],
+      5:[4,3,2,0,0,0], 6:[4,3,3,0,0,0],
+      7:[4,3,3,1,0,0], 8:[4,3,3,2,0,0],
+      9:[4,3,3,3,1,0], 10:[4,3,3,3,2,0]
+    };
+    const effectiveLevel = Math.min(10, casterLevel);
+    return { type:'half', slots: fullTable[effectiveLevel] || fullTable[1], maxLevel: Math.min(5, Math.ceil(casterLevel/2)) };
+  }
+  
+  return null;
+}
+
+// Get recommended spells for a class at a given level
+function getRecommendedSpells(classKey, level, count) {
+  const classSpells = SPELL_DATA[classKey];
+  if (!classSpells) return [];
+
+  const maxSpellLevel = Math.min(9, Math.ceil(level / 2));
+  const recommended = [];
+
+  for (let lvl = 0; lvl <= maxSpellLevel; lvl++) {
+    const spells = classSpells[lvl];
+    if (!spells) continue;
+
+    // Add level property to each spell object
+    const withLevel = spells.map(s => ({ ...s, level: lvl }));
+
+    // Take "标志性" spells first, then others
+    const iconic = withLevel.filter(s => s.desc.includes('标志性'));
+    const others = withLevel.filter(s => !s.desc.includes('标志性'));
+
+    // Cantrips: take up to 3-4
+    if (lvl === 0) {
+      recommended.push(...iconic.slice(0, 2));
+      recommended.push(...others.slice(0, 2));
+    } else {
+      // Leveled spells: 1-3 per level
+      recommended.push(...iconic.slice(0, 2));
+      if (recommended.length - (lvl === 0 ? 0 : iconic.slice(0, 2).length) < 3) {
+        recommended.push(...others.slice(0, 1));
+      }
+    }
+  }
+
+  // Limit to a reasonable number
+  const limit = count || Math.min(30, 3 + level * 2);
+  return recommended.slice(0, limit);
+}
+
+// ============================================================
+// APP LOGIC
+// ============================================================
+
+// DOM Elements
+const charNameEl = document.getElementById('charName');
+const charClassEl = document.getElementById('charClass');
+const charSubclassEl = document.getElementById('charSubclass');
+const charLevelEl = document.getElementById('charLevel');
+const charRaceEl = document.getElementById('charRace');
+const charBgEl = document.getElementById('charBackground');
+const charAlignEl = document.getElementById('charAlignment');
+const subclassHint = document.getElementById('subclassHint');
+const generateBtn = document.getElementById('generateBtn');
+const randomBtn = document.getElementById('randomBtn');
+const backBtn = document.getElementById('backBtn');
+const shareBtn = document.getElementById('shareBtn');
+const generatorForm = document.getElementById('generator-form');
+const cardWrap = document.getElementById('characterCardWrap');
+const characterCard = document.getElementById('characterCard');
+const toastEl = document.getElementById('toast');
+const themeToggle = document.getElementById('themeToggle');
+
+// Populate Class dropdown
+function populateClasses() {
+  Object.entries(CLASS_DATA).forEach(([key, data]) => {
+    const opt = document.createElement('option');
+    opt.value = key;
+    opt.textContent = `${data.icon} ${data.name}`;
+    charClassEl.appendChild(opt);
+  });
+}
+
+// Populate Race dropdown
+function populateRaces() {
+  RACES.forEach(r => {
+    const opt = document.createElement('option');
+    opt.value = r.name;
+    opt.textContent = `${r.name} (${r.source})`;
+    charRaceEl.appendChild(opt);
+  });
+}
+
+// Populate Background dropdown
+function populateBackgrounds() {
+  BACKGROUNDS.forEach(b => {
+    const opt = document.createElement('option');
+    opt.value = b.name;
+    opt.textContent = b.name;
+    charBgEl.appendChild(opt);
+  });
+}
+
+// Update Subclass dropdown when class changes
+charClassEl.addEventListener('change', () => {
+  const classKey = charClassEl.value;
+  charSubclassEl.innerHTML = '<option value="">-- 自动选择 --</option>';
+  
+  if (classKey && SUBCLASS_DATA[classKey]) {
+    SUBCLASS_DATA[classKey].forEach(sc => {
+      const opt = document.createElement('option');
+      opt.value = sc.name;
+      opt.textContent = `${sc.name} (${sc.source})`;
+      charSubclassEl.appendChild(opt);
+    });
+    subclassHint.textContent = `留空将由系统自动推荐合适的子职业`;
+  } else {
+    subclassHint.textContent = '';
+  }
+});
+
+// Toast notification
+function showToast(msg) {
+  toastEl.textContent = msg;
+  toastEl.classList.add('show');
+  clearTimeout(toastEl._timeout);
+  toastEl._timeout = setTimeout(() => toastEl.classList.remove('show'), 2000);
+}
+
+// Theme Toggle
+function initTheme() {
+  const saved = localStorage.getItem('dnd-theme') || 'light';
+  document.documentElement.setAttribute('data-theme', saved);
+  themeToggle.textContent = saved === 'dark' ? '☀️' : '🌙';
+}
+themeToggle.addEventListener('click', () => {
+  const current = document.documentElement.getAttribute('data-theme');
+  const next = current === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  themeToggle.textContent = next === 'dark' ? '☀️' : '🌙';
+  localStorage.setItem('dnd-theme', next);
+});
+
+// Score to modifier
+function scoreToMod(score) {
+  const mod = Math.floor((score - 10) / 2);
+  return { mod, text: mod >= 0 ? `+${mod}` : `${mod}` };
+}
+
+// Generate ability scores based on class
+function generateAbilities(classKey) {
+  const classData = CLASS_DATA[classKey];
+  const primary = classData.primary;
+  const abilities = { 力量:0, 敏捷:0, 体质:0, 智力:0, 感知:0, 魅力:0 };
+  
+  // Start with standard array sorted
+  let scores = [...STANDARD_ARRAY].sort((a,b) => b - a);
+  
+  // Map to abilities: primary gets highest scores
+  const mapOrder = [...primary];
+  const remaining = ['力量','敏捷','体质','智力','感知','魅力'].filter(a => !mapOrder.includes(a));
+  mapOrder.push(...remaining);
+  
+  mapOrder.forEach((abil, i) => {
+    abilities[abil] = scores[i];
+  });
+  
+  return abilities;
+}
+
+// Get class features up to current level
+function getFeatures(classKey, level) {
+  const features = CLASS_DATA[classKey].features;
+  const result = [];
+  const levels = Object.keys(features).map(Number).sort((a,b) => a - b);
+  
+  for (const lvl of levels) {
+    if (lvl <= level) {
+      features[lvl].forEach(f => result.push({ level: lvl, name: f }));
+    }
+  }
+  return result;
+}
+
+// Get equipment based on class
+function getEquipment(classKey) {
+  const equipment = {
+    barbarian: ['巨斧', '手斧(2)', '探索者套裝', '4标枪'],
+    bard: ['细剑', '艺人套裝', '鲁特琴', '皮甲', '匕首'],
+    cleric: ['硬头锤', '鳞甲', '盾牌', '圣徽', '祭司套裝'],
+    druid: ['木盾', '弯刀', '皮甲', '探索者套裝', '德鲁伊法器'],
+    fighter: ['长剑', '盾牌', '链甲', '探索者套裝', '轻弩+20矢'],
+    monk: ['短剑', '探索者套裝', '飞镖(10)'],
+    paladin: ['长剑', '盾牌', '链甲', '圣徽', '祭司套裝', '5标枪'],
+    ranger: ['长弓', '箭矢(20)', '短剑(2)', '皮甲', '探索者套裝'],
+    rogue: ['细剑', '短弓+20矢', '皮甲', '盗贼工具', '探索者套裝'],
+    sorcerer: ['轻弩+20矢', '法器', '探索者套裝', '匕首(2)'],
+    warlock: ['轻弩+20矢', '法器', '学者套裝', '皮甲', '匕首(2)'],
+    wizard: ['法杖', '法术书', '学者套裝', '法器'],
+    artificer: ['轻弩+20矢', '盗贼工具', '工匠工具', '皮甲', '探索者套裝'],
+    bloodhunter: ['长剑', '手弩+20矢', '皮甲', '探索者套裝', '血猎工具']
+  };
+  return equipment[classKey] || ['冒险者套裝', '旅行者服装', '腰包'];
+}
+
+// Equipment detail descriptions
+const EQUIP_DETAILS = {
+  // Weapons
+  '巨斧': '1d12 挥砍伤害 | 重型, 双手武器 | 野蛮人最爱',
+  '手斧': '1d6 挥砍伤害 | 轻型, 投掷(20/60尺) | 可双持投掷',
+  '手斧(2)': '1d6 挥砍伤害 | 轻型, 投掷(20/60尺) | 2把, 可双持',
+  '长剑': '1d8 挥砍(单手)/1d10(双手) | 多用 | 经典冒险武器',
+  '细剑': '1d8 穿刺伤害 | 灵巧 | 可使用敏捷调整值',
+  '短剑': '1d6 穿刺伤害 | 灵巧, 轻型 | 双持流首选',
+  '短剑(2)': '1d6 穿刺伤害 | 灵巧, 轻型 | 2把, 双持攻击',
+  '硬头锤': '1d6 钝击伤害 | 简易武器 | 牧师经典',
+  '弯刀': '1d6 挥砍伤害 | 灵巧, 轻型 | 德鲁伊专属',
+  '法杖': '1d6/1d8 钝击伤害 | 多用 | 可作为法器使用',
+  '巨斧(2)': '1d12 挥砍伤害 | 重型, 双手 | 蛮力压制',
+  '5标枪': '1d6 穿刺伤害 | 投掷(30/120尺) | 5把',
+  '4标枪': '1d6 穿刺伤害 | 投掷(30/120尺) | 4把',
+  // Ranged
+  '长弓': '1d8 穿刺伤害 | 弹药(150/600尺) | 重型, 双手 | 游侠招牌',
+  '短弓+20矢': '1d6 穿刺伤害 | 弹药(80/320尺) | 双手 | 配20支箭',
+  '轻弩+20矢': '1d8 穿刺伤害 | 弹药(80/320尺) | 装填, 双手 | 配20矢',
+  '手弩+20矢': '1d6 穿刺伤害 | 弹药(30/120尺) | 轻型, 装填 | 配20矢',
+  '箭矢(20)': '弹药(20支) | 配合弓类武器使用',
+  '飞镖(10)': '1d4 穿刺伤害 | 灵巧, 投掷(20/60尺) | 武僧经典投掷武器',
+  // Armor
+  '皮甲': 'AC=11+敏捷调整值 | 轻型护甲 | 无潜行劣势',
+  '鳞甲': 'AC=14+敏捷(最多+2) | 中型护甲 | 潜行劣势',
+  '链甲': 'AC=16 | 重型护甲 | 力量不足减10尺速度 | 潜行劣势',
+  '盾牌': 'AC+2 | 需要空出一只手 | 持盾必备',
+  '木盾': 'AC+2 | 德鲁伊可用 | 不违反自然之誓',
+  // Gear
+  '探索者套裝': '背包+睡袋+餐具+火绒盒+火把(10)+口粮(10天)+水袋+50尺麻绳',
+  '艺人套裝': '背包+睡袋+2套服装+蜡烛(5)+口粮(5天)+水袋+伪装工具',
+  '祭司套裝': '背包+毛毯+蜡烛(10)+火绒盒+募捐盒+香(2)+香炉+祭袍+口粮(2天)+水袋',
+  '学者套裝': '背包+书+墨水+墨水笔+羊皮纸(10)+小袋沙子+小刀',
+  '冒险者套裝': '背包+睡袋+餐具+火绒盒+火把(10)+口粮(10天)+水袋+50尺麻绳',
+  '旅行者服装': '普通出行服装, 不影响AC',
+  '腰包': '可存放少量金币和小物件',
+  // Special items
+  '圣徽': '施法法器 | 施展牧师/圣武士法术必备 | 刻有神祇标记',
+  '德鲁伊法器': '施法法器 | 施展德鲁伊法术必备 | 槲寄生、图腾等自然物',
+  '法器': '施法法器 | 施法必备 | 水晶、法珠、权杖等',
+  '法术书': '法师命脉 | 记录已知法术 | 丢失法术书=无法准备新法术',
+  '盗贼工具': '开锁+解除陷阱 | 需要敏捷(盗贼工具)熟练 | 游荡者必备',
+  '工匠工具': '制造/修理物品 | 奇械师核心工具 | 包含各类工匠设备',
+  '血猎工具': '准备血猎变异和药水 | 血猎手专用',
+  '鲁特琴': '乐器 | 吟游诗人施法法器 | +表演检定',
+  '匕首': '1d4穿刺伤害 | 灵巧,轻型,投掷(20/60) | 随身武器',
+  '匕首(2)': '1d4穿刺伤害 | 灵巧,轻型,投掷(20/60) | 2把',
+};
+
+// Feature detail descriptions (common D&D 5E class features)
+const FEATURE_DETAILS = {
+  // Barbarian
+  '狂暴': '附赠动作进入狂暴(次数随等级增加), 力量攻击&豁免优势, 钝击/穿刺/挥砍抗性, 力量检定优势。不能施法或专注。持续1分钟, 非自身回合结束未攻击/未受伤害则提前结束。',
+  '无甲防御': '不穿护甲时AC=10+敏捷调整值+体质调整值, 可使用盾牌。',
+  '鲁莽攻击': '本回合所有力量近战攻击获得优势, 但到你的下回合开始敌人对你的攻击也获得优势。',
+  '险境感知': '对可见效应(如陷阱、法术)的敏捷豁免获得优势。不能处于目盲/耳聋/失能状态。',
+  '额外攻击': '攻击动作可进行2次攻击。',
+  '快速移动': '不穿重甲时速度+10尺。',
+  '野性直觉': '先攻检定获得优势。',
+  '凶蛮重击': '近战暴击时额外投一颗武器伤害骰。',
+  '不屈勇气': '生命降至0时可进行DC=10+已受伤害的体质豁免, 成功则降至1HP。',
+  '蛮力': '力量检定和力量豁免获得优势。',
+  '原始斗士': '力量和体质各+4(最多24)。',
+  '无尽狂暴': '狂暴次数无限。',
+  // Bard
+  '吟游激励': '附赠动作60尺内一个生物获得1颗激励骰(d6), 10分钟内可用于一次攻击/豁免/属性检定。次数=魅力调整值。',
+  '万事通': '所有未熟练属性检定获得一半熟练加值(向下取整)。',
+  '专精': '两项熟练技能的熟练加值翻倍。',
+  '休憩曲': '短休结束时全队额外恢复1d6/1d8/1d10/1d12生命值。',
+  '激励泉涌': '先攻开始时激励骰不足时恢复1颗。',
+  '反迷惑': '魅力豁免获得优势。',
+  '魔法奥秘': '可从任意职业法术列表选择2个法术加入已知法术。',
+  '超凡激励': '激励骰变为d12。',
+  // Cleric
+  '引导神力': '获得引导神力能力(次数随等级增加), 具体效果取决于领域。',
+  '神授领域': '选择牧师领域(生命/光明/诡术/战争/自然/风暴/知识/坟冢/锻造/秩序等), 获得对应特性。',
+  '摧毁亡灵': '引导神力, 30尺内CR≤1/2的亡灵需感知豁免否则被摧毁。',
+  '神圣干预': '向神祇祈求, 百分骰≤等级则成功, 神祇介入。7天后可再次使用。',
+  '百发百中': '神圣干预自动成功。',
+  // Druid
+  '荒野形态': '附赠动作变身为野兽(CR限制随等级提升), 获得野兽HP/属性/速度。每短休/长休恢复2次使用。',
+  '德鲁伊领域': '不穿金属甲, 可穿戴自然材料护甲+盾牌。',
+  '野性形态(飞行)': '荒野形态可变为有飞行速度的野兽。',
+  '千面相': '随意施展自我伪装法术。',
+  '不朽自然': '衰老减缓, 每过10年才相当于1年。',
+  '兽王': '荒野形态无使用次数限制。',
+  // Fighter
+  '战斗风格': '选择一种战斗风格(箭术/防御/对决/巨武器/保护/双武器等)。',
+  '回气': '附赠动作恢复1d10+战士等级生命值。每短休/长休恢复1次。',
+  '动作如潮': '自己的回合可进行2次动作。每短休/长休恢复1次。',
+  '卓越战技': '获得卓越骰(d8/d10/d12), 用于战技如精准攻击、横扫、摔绊等。',
+  '战术大师': '每次先攻投掷时恢复1颗卓越骰(若已用完)。',
+  '不屈': '失败豁免可重投(必须接受新结果)。',
+  '额外攻击(2)': '攻击动作可进行3次攻击。',
+  '额外攻击(3)': '攻击动作可进行4次攻击。',
+  // Monk
+  '气': '获得气能量点数(等于武僧等级), 用于疾风连击、坚强防御、飞檐走壁等。',
+  '无甲防御': '不穿护甲时AC=10+敏捷调整值+感知调整值。',
+  '武术': '徒手攻击/武僧武器伤害骰变为d4/d6/d8/d10(随等级提升), 可用敏捷替代力量。',
+  '疾风连击': '附赠动作消耗1气, 进行2次徒手攻击。',
+  '坚强防御': '附赠动作消耗1气, 执行闪避动作。',
+  '飞檐走壁': '附赠动作消耗1气, 执行撤离/疾行动作, 本回合跳跃距离翻倍。',
+  '无甲移动': '不穿甲速度+10/15/20/25/30尺(随等级)。',
+  '拨挡飞弹': '受到远程攻击时反应, 伤害减少1d10+敏捷+等级, 若归0可反投。',
+  '轻身坠': '近墙/绳时不受坠落伤害。',
+  '震慑击': '徒手命中后消耗1气, 目标体质豁免否则震慑至你的下回合结束。',
+  '空灵体': '空灵状态, 所有攻击对你劣势, 可穿越生物和物体。',
+  '不老身躯': '不受魔法衰老影响, 不需要进食饮水。',
+  '金刚魂': '全豁免熟练加值。',
+  '完美自我': '先攻时无气点则恢复4气。',
+  // Paladin
+  '神圣感知': '动作感知60尺内天界/邪魔/亡灵的气息(次数=魅力+1)。',
+  '至圣斩': '近战命中后消耗1法术位, 额外造成2d8/3d8/4d8/5d8光耀伤害(随环位)。对亡灵+1d8。',
+  '圣疗': '接触恢复生命值(总值=圣武士等级×5), 可分批使用; 花费5点解除一种疾病/中毒。',
+  '神佑': '免疫疾病。',
+  '勇气灵光': '10/30尺内友善生物免疫恐慌。',
+  '守护灵光': '10/30尺内友善生物所有豁免获得魅力调整值加值。',
+  '净化之触': '动作结束自身一个法术效应。',
+  '神圣誓言': '选择圣武士誓言(奉献/古贤/复仇/王冠/征服/救赎等), 获得对应特性。',
+  // Ranger
+  '宿敌': '选择宿敌类型, 对其追踪/回忆优势, 学习相关语言。',
+  '自然探险家': '选择偏好地形, 导航优势、警觉、独自潜行正常速度、觅食x2。',
+  '原初感知': '感知1里内是否存在宿敌/偏好地形/异怪/天界/龙/元素/精类/邪魔/亡灵。',
+  '隐形自然': '在自然环境中可花费1分钟把自己和物品伪装, 不动则隐匿。',
+  '无踪步': '非魔法地形不减速。',
+  '狩猎者感知': '感知豁免获得优势。',
+  '自然之纱': '附赠动作变为隐形, 持续至下回合开始。',
+  '杀戮者': '每回合一次, 武器攻击命中后可重投伤害骰(必须接受新结果)。',
+  // Rogue
+  '偷袭': '每回合一次, 攻击优势或敌人5尺内有盟友时, 额外造成1d6+伤害(随等级递增)。',
+  '盗贼黑话': '掌握盗贼的密语通信方式。',
+  '狡猾动作': '附赠动作可执行撤离/疾行/躲藏动作。',
+  '直觉闪避': '被可见攻击命中时反应, 伤害减半。',
+  '反射闪避': '敏捷豁免成功后不受伤害(原本半伤变无伤)。',
+  '可靠才能': '任何已熟练属性检定投出9以下视为10。',
+  '盲视': '获得10尺盲视范围。',
+  '圆滑心智': '感知豁免获得熟练加值。',
+  '万无一失': '攻击失手可将失手变为命中。每短休/长休1次。',
+  '幸运一击': '一次攻击命中自动变为暴击。',
+  // Sorcerer
+  '术法点': '获得术法点(等于等级), 可以：创造法术位、灵活施法、超魔法。',
+  '超魔法': '消耗术法点增强法术：瞬发(附赠)、远程(射程x2)、强效(重投伤害骰)、延效(时间x2)、升阶(目标豁免劣势)、孪生(双目标)等。',
+  '魔力源泉': '短休恢复所有术法点。',
+  '龙族血统': '选龙族祖先, 获得龙族抗性(对应元素)+AC=13+敏捷, HP+1每等级。',
+  '狂野魔法': '施法后可能触发随机魔法效果(由DM掷d100)。',
+  '龙翼': '附赠动作长出龙翼, 获得飞行速度。',
+  // Warlock
+  '异界宗主': '选择宗主(邪魔/旧日支配者/精类/天界/咒剑/深潜者等), 获得扩展法术和特性。',
+  '魔能祈唤': '选择祈唤强化魔能爆或获得新能力(如魔鬼视觉120尺黑暗视觉、痛苦冲击+魅力伤害等)。',
+  '链主': '获得高级魔宠(小魔鬼/伪龙/夸塞魔/小妖精)。',
+  '剑约': '获得魔契之刃, 可召唤武器且熟练。',
+  '书约': '魔契书卷, 获得3个任意职业戏法。',
+  '链约': '魔契约魔宠, 攻击时可放弃一次攻击让魔宠攻击。',
+  '神秘奥术': '选择一个6/7/8/9环法术作为奥术, 可免费施放一次每长休。',
+  '魔能掌控': '一分钟恢复4个契约法术位。',
+  // Wizard
+  '奥术回想': '短休恢复等级÷2(向上取整)的已用法术位(合计环位)。',
+  '法术精通': '选择1个1环+1个2环法术, 可不消耗法术位随意施放。',
+  '招牌法术': '选择2个3环法术作为招牌, 永久准备且可各免费施放一次每短休/长休。',
+  // Artificer
+  '魔法分析': '仪式施放侦测魔法, 可直接知道物品附魔类别。',
+  '注法': '为物品注入魔法(次数随等级), 创造魔法物品(强化防御/回力武器/魔袋等)。',
+  '专家工具': '熟练工具/技能的熟练加值翻倍。',
+  '魔法物品专家': '可同调4/5/6件魔法物品, 制作魔法物品时间/金钱减半。',
+  '法术储蓄': '将1/2环法术存入物品, 可由他人触发。',
+  '灵魂匠具': '根据子职业获得特殊装备(装甲师:奥术护甲/炼金师:炼金工具/炮手:魔能火炮/战匠:钢铁防卫者)。',
+  // Blood Hunter
+  '血之诅咒': '消耗生命值或血骰对目标施加诅咒(失明、束缚、增伤等)。',
+  '血猎变异': '强化自身获得抗性/感知/速度等效果(选择变异: 狼人/幽灵/不死/异怪/元素)。',
+  '血骰': '获得血骰(d4/d6/d8/d10随等级), 用于激活能力, 每次消耗HP。',
+  '品牌放逐': '对标记目标伤害+血骰, 邪魔/亡灵额外。',
+  '黑血': '免疫毒素+疾病, 不需进食。',
+  // === 缺失特性补全 - Barbarian ===
+  '危险感知': '只要未陷入失能状态, 敏捷豁免检定具有优势。危机来临前超自然的直觉让你更好地躲避危机。',
+  '原初道途': '选择一项野蛮人道途: 狂战士道途/兽心道途/世界树道途/狂热者道途。道途在3级、6级、10级、14级赋予独特能力。',
+  '坚韧狂暴': '狂暴激活期间生命值降至0且未立即死亡时, DC10体质豁免, 成功则生命值变为野蛮人等级×2。每次使用后DC+5, 短休/长休重置为10。',
+  '持久狂暴': '投掷先攻时重获所有已消耗狂暴次数(每长休一次); 狂暴自动持续10分钟无需主动延长; 仅昏迷或穿戴重甲时提前结束。',
+  '不屈勇武': '进行力量检定或力量豁免时, 若检定总值低于自身力量属性值, 可用力量属性值替代检定总值。',
+  '原初斗士': '力量和体质各+4, 两项属性上限提升至25。你已成为原初之力的化身。',
+  // === 缺失特性补全 - Bard ===
+  '诗人激励': '附赠动作激励60尺内一个能听见/看见你的生物, 获诗人激励骰(d6→d8→d10→d12随等级提升)。1小时内该生物D20检定失败时可消耗激励骰加值。次数=魅力调整值(至少1次), 长休恢复。',
+  '施法': '获得施法能力。戏法随等级获得和替换; 准备法术数量随等级增加(长休可更换); 施法属性取决于职业(吟游诗人/圣武士/术士/魔契师=魅力, 牧师/德鲁伊/游侠=感知, 法师/奇械师=智力)。',
+  '诗人学院': '选择吟游诗人子职: 舞蹈学院/魅心学院/逸闻学院/勇气学院。子职在3级、6级、14级赋予独特能力。',
+  '激励提升': '短休或长休重获所有已消耗的诗人激励使用次数; 也可消耗一个法术位(无需动作)重获一次已消耗的激励次数。',
+  // === 缺失特性补全 - Cleric ===
+  '神圣干预强化': '使用神圣干预时可以选择法术祈愿术(Wish)。若选择施展祈愿术, 需完成2d4次长休后才能再次使用神圣干预。',
+  // === 缺失特性补全 - Druid ===
+  '德鲁伊语': '习得德鲁伊的古老秘密语言, 以及始终准备法术动物交谈。使用德鲁伊语可传递隐藏信息, 其他人需DC15智力(调查)才能意识到信息存在。',
+  '德鲁伊结社': '选择德鲁伊子职: 大地结社/月亮结社/海洋结社/星辰结社。结社在3级、6级、10级、14级赋予独特能力。',
+  '野兽施法': '可在任何荒野变形形态下施法。但当法术需要标有价值的材料成分或消耗材料成分时, 无法在荒野变形下施展。',
+  '大德鲁伊': '三项增益: (1)不凋化形-先攻时无荒野变形次数则获1次; (2)自然术使-可将荒野变形次数转为法术位(2环/次); (3)青春永驻-每10年身体只老化1年。',
+  // === 缺失特性补全 - Fighter ===
+  '武术范型': '选择战士子职: 战斗大师/勇士/奥法骑士/灵能武士。范型在3级、7级、10级、15级、18级赋予独特能力。',
+  // === 缺失特性补全 - Monk ===
+  'Martial Arts': '未着装护甲/未持盾时: 附赠动作徒手打击; 可用武艺骰(d6→d12随等级)替代武器伤害; 可用敏捷代替力量进行攻击和擒抱。',
+  '武僧宗派': '选择武僧子职: 命流武者/暗影武者/四象武者/散打武者。宗派在3级、6级、11级、17级赋予独特能力。',
+  '震慑拳': '每回合一次, 徒手打击或武僧武器命中后消耗1点功力, 目标体质豁免失败则陷入震慑状态至你的下回合开始; 成功则速度减半且下次对其攻击优势。',
+  '心如止水': '每次自己回合结束时, 可移除魅惑/恐慌/中毒状态之一。此外不吃不喝不再提升力竭等级。',
+  '百病不侵': '返本还元: 每次回合结束移除魅惑/恐慌/中毒状态之一; 免疫因不吃不喝导致的力竭。',
+  '全向豁免熟练': '获得所有豁免的熟练加值。此外豁免检定失败时可消耗1点功力重骰, 必须使用新结果。',
+  '超凡入圣': '敏捷和感知各+4, 两项属性上限提升至25。已达到完美的身心合一。',
+  // === 缺失特性补全 - Paladin ===
+  '圣誓': '选择圣武士誓言: 奉献之誓/荣耀之誓/古贤之誓/复仇之誓。圣誓在3级、7级、15级、20级赋予独特能力。主动破誓且不悔改需与DM商议更换子职甚至职业。',
+  '强化至圣斩': '神力充盈全身, 近战武器或徒手打击命中时, 额外造成1d8光耀伤害。',
+  '圣誓变身': '根据所选圣誓获得20级的终极变身形态(各誓言化身形态不同, 持续1分钟/长休1次), 通常赋予飞行速度、光环增强等强力效果。',
+  // === 缺失特性补全 - Ranger ===
+  '自然探索者': '选择偏好地形, 在其中获得以下增益: 导游/觅食/追踪/知识检定优势; 旅行不减速; 独自潜行正常速度移动; 觅食量×2。',
+  '游侠范型': '选择游侠子职: 猎人/驯兽师/妖精漫游者/幽域追猎者。范型在3级、7级、11级、15级赋予独特能力。',
+  '大地行走': '非魔法困难地形不消耗额外移动力; 在非魔法植物中穿行不受其阻碍或伤害(植物为魔法效果时需豁免)。',
+  '遁术': '花费1分钟伪装自己, 用自然材料(泥/叶/苔等)伪装, 保持不动时隐匿检定优势。',
+  '野性感官': '感知30尺内隐形生物的位置(只要不被完全遮蔽); 不依赖视觉也能察觉周边环境。',
+  '屠灭者': '每回合一次, 对宿敌的武器攻击命中后可重投伤害骰(必须接受新结果)。',
+  // === 缺失特性补全 - Rogue ===
+  '灵巧动作': '附赠动作可执行撤离/疾行/躲藏动作。',
+  '游荡者范型': '选择游荡者子职: 诡术师/刺客/魂刃/盗贼。范型在3级、9级、13级、17级赋予独特能力。',
+  '盲感': '获得10尺盲视范围, 可感知隐藏或隐形的生物。',
+  '滑溜心智': '感知豁免获得熟练加值。',
+  '难以捉摸': '攻击者对你有优势时, 若你没有失能状态, 其攻击不再获得优势。',
+  // === 缺失特性补全 - Sorcerer ===
+  '术法起源': '选择术士子职: 畸变术法/时械术法/龙族术法/狂野术法。起源在1级、3级、6级、14级、18级赋予独特能力。',
+  '魔力泉涌': '获得术法点(等于术士等级)。术法点可用于创造法术位或转化为法术位。短休恢复所有术法点; 灵活施法无需动作即可转化。',
+  '超魔法选项': '获得2种超魔法选项(熟练/强效/瞬发/远程/延效/升阶/孪生等), 消耗术法点增强法术。10级和17级各额外获得一种。',
+  '额外超魔法': '额外获得一种超魔法选项。',
+  '术法恢复': '短休时恢复4点已消耗的术法点。',
+  // === 缺失特性补全 - Warlock ===
+  '契约魔法': '使用契约魔法(Pact Magic), 法术位数量少但均为最高环位, 短休恢复所有法术位。已知法术数量随等级增加; 施法属性为魅力。',
+  '契约恩惠': '选择契约恩惠: 链之魔契(高级魔宠)/刃之魔契(召唤魔契武器)/书之魔契(暗影之书, 获3任意戏法)/护符之魔契(守护护符)。',
+  '神秘奥秘': '获得一个6环奥秘法术, 可免费施放一次每长休。13级获7环、15级获8环、17级获9环奥秘。',
+  '魔能精通': '花费1分钟与宗主沟通, 恢复所有已消耗的契约法术位。每长休1次。',
+  // === 缺失特性补全 - Wizard ===
+  '奥术恢复': '短休时恢复总环位=法师等级÷2(向上取整)的已用法术位。每长休1次。',
+  '奥术学派': '选择法师学派: 防护/预言/塑能/幻术/咒法/惑控/死灵/变化/剑咏/战争魔法等。学派在2级、6级、10级、14级赋予独特能力。',
+  // === 缺失特性补全 - Artificer ===
+  '注法物品': '为普通物品注入魔法(次数=智力调整值, 短休恢复); 从注法列表中选择效应(如+1武器/+1护甲/回力武器/魔法袋等)。同时注法物品数量上限随等级提升。',
+  '奇械师专精': '选择奇械师子职: 炼金师/装甲师/魔炮师/战地匠师。专精在3级、5级、9级、15级赋予独特能力。',
+  '造物专家': '无需材料, 花费1小时创造一套工匠工具或探险装备(绳索、抓钩等), 持续至再次使用此特性。',
+  '灵光闪现': '当自己或30尺内生物进行属性检定/豁免检定时, 可用反应消耗一次注法次数, 加值=智力调整值(至少+1), 检定结束后决定是否使用。',
+  '魔法物品精通': '可同调更多魔法物品(10级=4件, 14级=5件, 18级=6件); 制作魔法物品时间减半、金钱减半。',
+  '法术储存物品': '将1个1环或2环法术存入物品, 施法时间1动作的法术可由持有者以动作触发。储存法术数随等级增加(11级=1法术, 18级=2法术)。',
+  '魔法物品大师': '可同调最多5件魔法物品(14级); 可无视职业/种族/等级要求使用魔法物品。',
+  '超凡之魂': '每件同调的魔法物品使所有豁免+1(最多+6); 生命值降至0时可用反应结束一次注法以将HP降至1, 长休后恢复。',
+  // === 缺失特性补全 - Blood Hunter ===
+  '猎手之血': '获优势追踪精类/邪魔/亡灵; 对这些生物类型的智力检定优势以回忆信息; 学习一种相关语言。',
+  '血祭仪式': '附赠动作激活血祭仪式(消耗1血骰=HP减血骰值), 武器获得1d4/1d6/1d8/1d10元素伤害(随等级), 持续至短休/长休或再次使用。可选: 火焰/寒冷/闪电/黯蚀/光耀。',
+  '血猎结社': '选择血猎手结社: 弑灵结社/化狼结社/突变结社。结社在3级、7级、11级、15级、18级赋予独特能力。',
+  '黑暗强化': '速度+5尺; 力量/敏捷/体质豁免熟练(若已熟练则获得优势)。',
+  '血之印记': '附赠动作对已受血祭仪式伤害的目标施加印记(感知豁免), 目标持续受血骰伤害且无法隐形。每短休1次。',
+  '血之坚韧': '对魅惑和恐慌的豁免优势; 免疫毒素; 不需进食饮水。',
+  '血之掌控': '力量或敏捷+2(上限22); 可主动消耗HP重投已失败的血祭仪式相关豁免; 免费使用一次超凡血咒。',
+  // === 别名/兼容性条目 ===
+  '吟游激励': '附赠动作激励60尺内一个能听见/看见你的生物, 获诗人激励骰(d6→d8→d10→d12随等级提升)。1小时内该生物D20检定失败时可消耗激励骰加值。次数=魅力调整值, 长休恢复。',
+};
+
+function getFeatureDesc(featureName) {
+  // Strip English translation in parentheses: "狂暴 (Rage)" -> "狂暴"
+  const cleanName = featureName.replace(/\s*\([^)]*\)/g, '').trim();
+  return FEATURE_DETAILS[featureName]
+      || FEATURE_DETAILS[cleanName]
+      || FEATURE_DETAILS[cleanName.replace(/\(\d+\)/, '')]
+      || null;
+}
+
+// Get HP
+function getHP(classKey, level, conMod) {
+  const hd = CLASS_DATA[classKey].hd;
+  const firstLevel = hd + conMod;
+  if (level === 1) return firstLevel;
+  const avgRest = Math.floor(hd / 2) + 1 + conMod;
+  return firstLevel + avgRest * (level - 1);
+}
+
+// Get Armor Class
+function getAC(classKey, abilities) {
+  const dexMod = scoreToMod(abilities['敏捷']).mod;
+  const baseAC = {
+    barbarian: 10 + dexMod + scoreToMod(abilities['体质']).mod,
+    monk: 10 + dexMod + scoreToMod(abilities['感知']).mod,
+    fighter: 16, paladin: 16, cleric: 16,
+    ranger: 14, rogue: 14, bard: 14, warlock: 14,
+    wizard: 10 + dexMod, sorcerer: 10 + dexMod,
+    druid: 14 + Math.min(dexMod, 2),
+    artificer: 14, bloodhunter: 14
+  };
+  return baseAC[classKey] || (10 + dexMod);
+}
+
+// Get recommended skills for class
+function getClassSkills(classKey, selectedBg) {
+  const classData = CLASS_DATA[classKey];
+  const bg = BACKGROUNDS.find(b => b.name === selectedBg);
+  
+  // Pick best skills for the class
+  const classSkills = classData.skills;
+  const preferredOrder = [...classData.primary.map(p => {
+    if (p === '力量') return '运动';
+    if (p === '敏捷') return ['体操','隐匿','手上功夫'];
+    if (p === '体质') return [];
+    if (p === '智力') return ['奥秘','历史','调查','自然','宗教'];
+    if (p === '感知') return ['驯兽','洞悉','医药','察觉','求生'];
+    if (p === '魅力') return ['欺瞒','威吓','表演','游说'];
+    return [];
+  })].flat();
+  
+  const selected = [];
+  for (const skill of preferredOrder) {
+    if (selected.length >= classData.skillCount) break;
+    if (classSkills.includes(skill) && !selected.includes(skill)) {
+      selected.push(skill);
+    }
+  }
+  
+  return selected;
+}
+
+// Build Character Card HTML
+function buildCharacterCard(data) {
+  const { name, classKey, subclass, level, race, background, alignment, abilities, features, skills, equipment, hp, ac, initiative, speed, proficiency, spellData } = data;
+  const classData = CLASS_DATA[classKey];
+  
+  const abilityOrder = ['力量','敏捷','体质','智力','感知','魅力'];
+  const abilityHTML = abilityOrder.map(a => {
+    const score = abilities[a];
+    const { mod, text: modText } = scoreToMod(score);
+    const modClass = mod > 0 ? 'positive' : mod < 0 ? 'negative' : '';
+    return `
+      <div class="ability-item">
+        <div class="ability-name">${a}</div>
+        <div class="ability-score">${score}</div>
+        <div class="ability-mod ${modClass}">${modText}</div>
+      </div>
+    `;
+  }).join('');
+  
+  // Skills with proficiency
+  const allSkills = ['体操','运动','欺瞒','洞悉','威吓','调查','察觉','表演','游说','手上功夫','隐匿','奥秘','历史','自然','宗教','驯兽','医药','求生'];
+  const skillHTML = allSkills.map(s => {
+    const isProf = skills.includes(s);
+    const abil = getSkillAbility(s);
+    const mod = scoreToMod(abilities[abil]).mod;
+    const bonus = isProf ? mod + proficiency : mod;
+    const bonusText = bonus >= 0 ? `+${bonus}` : `${bonus}`;
+    return `
+      <div class="skill-tag ${isProf ? 'proficient' : ''}">
+        <span class="skill-bonus">${bonusText}</span>
+        <span>${s}</span>
+        ${isProf ? '⭐' : ''}
+      </div>
+    `;
+  }).join('');
+  
+  const featuresHTML = features.map(f => {
+    const desc = getFeatureDesc(f.name);
+    return desc
+      ? `<div class="feature-detail" data-feature="${f.name.replace(/"/g,'&quot;')}" onclick="toggleFeatureDetail(this)">
+          <div class="feature-detail-header">
+            <span class="fd-level">Lv${f.level}</span>
+            <span class="fd-name">${f.name}</span>
+            <span class="fd-expand">▾</span>
+          </div>
+          <div class="feature-detail-desc">${desc}</div>
+        </div>`
+      : `<div class="feature-detail" style="cursor:default;">
+          <div class="feature-detail-header">
+            <span class="fd-level">Lv${f.level}</span>
+            <span class="fd-name">${f.name}</span>
+          </div>
+        </div>`;
+  }).join('');
+  
+  const equipHTML = equipment.map(e => {
+    const desc = EQUIP_DETAILS[e];
+    return desc
+      ? `<span class="equip-detail" data-name="${e.replace(/"/g,'&quot;')}" data-desc="${desc.replace(/"/g,'&quot;')}" onclick="showEquipTooltip(this)">${e}</span>`
+      : `<span class="equip-tag">${e}</span>`;
+  }).join('');
+  
+  return `
+    <div class="card-header">
+      <span class="card-class-icon">${classData.icon}</span>
+      <div class="card-name">${name || '未命名冒险者'}</div>
+      <div class="card-subtitle">Lv.${level} ${classData.name}${subclass ? ' · ' + subclass : ''}</div>
+    </div>
+    <div class="card-body">
+      <!-- Ability Scores -->
+      <div class="ability-grid">${abilityHTML}</div>
+      
+      <!-- Combat Stats -->
+      <div class="stats-row">
+        <div class="stat-item">
+          <div class="stat-label">护甲等级</div>
+          <div class="stat-value">${ac}</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">生命值</div>
+          <div class="stat-value">${hp}</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">先攻</div>
+          <div class="stat-value">${initiative >= 0 ? '+' : ''}${initiative}</div>
+        </div>
+      </div>
+      
+      <!-- Info -->
+      <div class="info-grid">
+        <div class="info-item">
+          <div class="info-label">种族</div>
+          <div class="info-value">${race || '人类'}</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">背景</div>
+          <div class="info-value">${background || '流浪者'}</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">阵营</div>
+          <div class="info-value">${ALIGNMENTS[alignment] || alignment}</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">熟练加值</div>
+          <div class="info-value">+${proficiency}</div>
+        </div>
+        <div class="info-item full">
+          <div class="info-label">速度</div>
+          <div class="info-value">${speed} 尺</div>
+        </div>
+      </div>
+      
+      <!-- Skills -->
+      <div class="skills-section">
+        <div class="skills-title">🎯 技能熟练</div>
+        <div class="skills-grid">${skillHTML}</div>
+      </div>
+      
+      <!-- Features (collapsible) -->
+      <div class="collapsible-section" id="feat-section">
+        <div class="collapsible-header" onclick="toggleSection('feat-section')">
+          <div class="section-title">✨ 职业特性 <span class="section-badge">${features.length}项</span></div>
+          <span class="collapsible-arrow">▾</span>
+        </div>
+        <div class="collapsible-body">
+          <div class="collapsible-body-inner">${featuresHTML}</div>
+        </div>
+      </div>
+      
+      <!-- Equipment (collapsible) -->
+      <div class="collapsible-section" id="equip-section">
+        <div class="collapsible-header" onclick="toggleSection('equip-section')">
+          <div class="section-title">🎒 装备 <span class="section-badge">${equipment.length}件</span></div>
+          <span class="collapsible-arrow">▾</span>
+        </div>
+        <div class="collapsible-body">
+          <div class="collapsible-body-inner" style="padding:10px 14px 14px;display:flex;flex-wrap:wrap;gap:4px;">${equipHTML}</div>
+        </div>
+      </div>
+      
+      <!-- Spells (collapsible) -->
+      ${spellData && spellData.spells && spellData.spells.length > 0 ? `
+      <div class="collapsible-section" id="spell-section">
+        <div class="collapsible-header" onclick="toggleSection('spell-section')">
+          <div class="section-title">✨ 推荐法术 ${spellData.type ? '(' + (spellData.type === 'full' ? '全施法者' : spellData.type === 'half' ? '半施法者' : '契约魔法') + ')' : ''} <span class="section-badge">${spellData.spells.length}个</span></div>
+          <span class="collapsible-arrow">▾</span>
+        </div>
+        <div class="collapsible-body">
+          <div class="collapsible-body-inner">
+            ${spellData.slots ? `<div class="spell-slots" style="margin-bottom:12px;">
+              <div class="skills-title" style="font-size:13px;margin-bottom:6px;">🔮 法术位</div>
+              <div class="spell-slot-grid">
+                ${spellData.slots.slice(0, spellData.maxLevel || 9).map((s, i) => s > 0 ? `<span class="spell-slot-badge">${i+1}环 × ${s}</span>` : '').filter(Boolean).join('')}
+              </div>
+            </div>` : ''}
+            <div class="spells-list">
+              ${spellData.spells.map(s => `
+                <div class="spell-item ${s.conc ? 'concentration' : ''} ${s.rit ? 'ritual' : ''}">
+                  <div class="spell-header">
+                    <span class="spell-level-badge">${s.level === 0 ? '戏法' : s.level+'环'}</span>
+                    <span class="spell-name">${s.name}</span>
+                    <span class="spell-school">${s.school}</span>
+                    ${s.conc ? '<span class="spell-tag conc-tag">C</span>' : ''}
+                    ${s.rit ? '<span class="spell-tag rit-tag">R</span>' : ''}
+                  </div>
+                  <div class="spell-info">
+                    <span class="spell-meta">${s.cast} | ${s.range} | ${s.dur}</span>
+                  </div>
+                  <div class="spell-desc">${s.desc}</div>
+                </div>
+              `).join('')}
+            </div>
+            <div style="font-size:11px;color:var(--text-secondary);margin-top:8px;text-align:center;font-style:italic;">
+              💡 以上为${classData.name}推荐法术，实际可用全部${classData.name}法术列表
+            </div>
+          </div>
+        </div>
+      </div>
+      ` : ''}
+      
+      <!-- Saving Throws -->
+      <div class="info-grid" style="margin-top: 12px;">
+        <div class="info-item">
+          <div class="info-label">豁免熟练</div>
+          <div class="info-value">${classData.saves.join('、')}</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">生命骰</div>
+          <div class="info-value">${level}d${classData.hd}</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-footer">
+      <div class="card-footer-text">⚔️ D&D 5E · 基于 5E 不全书数据 · AI 生成仅供参考</div>
+      <div class="share-section">
+        <div class="share-title">📱 分享此页面</div>
+        <div class="share-url-box">
+          <span class="share-url-text" id="shareUrl">https://e943424cff044e47b1bc9fa1c25366ab.app.codebuddy.work</span>
+          <button class="share-copy-btn" onclick="copyShareUrl()">复制链接</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function getSkillAbility(skill) {
+  const map = {
+    '运动':'力量',
+    '体操':'敏捷', '隐匿':'敏捷', '手上功夫':'敏捷',
+    '奥秘':'智力', '历史':'智力', '调查':'智力', '自然':'智力', '宗教':'智力',
+    '驯兽':'感知', '洞悉':'感知', '医药':'感知', '察觉':'感知', '求生':'感知',
+    '欺瞒':'魅力', '威吓':'魅力', '表演':'魅力', '游说':'魅力'
+  };
+  return map[skill] || '感知';
+}
+
+// Generate character
+function generateCharacter() {
+  const classKey = charClassEl.value;
+  if (!classKey) {
+    showToast('⚠️ 请先选择职业');
+    return;
+  }
+  
+  const name = charNameEl.value.trim() || randomName(classKey);
+  const level = Math.max(1, Math.min(20, parseInt(charLevelEl.value) || 1));
+  let subclass = charSubclassEl.value;
+  const race = charRaceEl.value || RACES[Math.floor(Math.random() * RACES.length)].name;
+  const background = charBgEl.value || BACKGROUNDS[Math.floor(Math.random() * BACKGROUNDS.length)].name;
+  const alignment = charAlignEl.value || 'TN';
+  
+  // Auto-pick subclass if not selected
+  if (!subclass && SUBCLASS_DATA[classKey]) {
+    const scList = SUBCLASS_DATA[classKey];
+    subclass = scList[Math.floor(Math.random() * Math.min(4, scList.length))].name;
+  }
+  
+  // Generate abilities
+  let abilities = generateAbilities(classKey);
+  
+  // Apply race modifiers (simplified)
+  const raceData = RACES.find(r => r.name === race);
+  if (raceData && raceData.asi) {
+    // Simple approach: add +1 to primary abilities if applicable
+    const classData = CLASS_DATA[classKey];
+    if (raceData.asi.includes('力量') && classData.primary.includes('力量')) abilities['力量'] += 1;
+    if (raceData.asi.includes('敏捷') && classData.primary.includes('敏捷')) abilities['敏捷'] += 1;
+    if (raceData.asi.includes('体质') && classData.primary.includes('体质')) abilities['体质'] += 1;
+    if (raceData.asi.includes('智力') && classData.primary.includes('智力')) abilities['智力'] += 1;
+    if (raceData.asi.includes('感知') && classData.primary.includes('感知')) abilities['感知'] += 1;
+    if (raceData.asi.includes('魅力') && classData.primary.includes('魅力')) abilities['魅力'] += 1;
+    // Cap at 20
+    Object.keys(abilities).forEach(k => { if (abilities[k] > 20) abilities[k] = 20; });
+  }
+  
+  const conMod = scoreToMod(abilities['体质']).mod;
+  const dexMod = scoreToMod(abilities['敏捷']).mod;
+  const hp = getHP(classKey, level, conMod);
+  const ac = getAC(classKey, abilities);
+  const initiative = dexMod;
+  const speed = 30;
+  const proficiency = Math.ceil(level / 4) + 1;
+  const features = getFeatures(classKey, level);
+  const skills = getClassSkills(classKey, background);
+  const equipment = getEquipment(classKey);
+  
+  // Generate spells for spellcasting classes
+  let spellData = null;
+  const spellCastingClasses = ['bard','cleric','druid','sorcerer','warlock','wizard','paladin','ranger','artificer'];
+  if (spellCastingClasses.includes(classKey) && SPELL_DATA[classKey]) {
+    const spellSlots = getSpellSlots(classKey, level);
+    // Skip if no spell slots yet (e.g., paladin/ranger level 1)
+    if (spellSlots) {
+      const recommendedSpells = getRecommendedSpells(classKey, level, 30);
+      spellData = {
+        spells: recommendedSpells,
+        type: spellSlots.type,
+        slots: spellSlots.slots,
+        maxLevel: spellSlots.maxLevel
+      };
+    }
+  }
+  
+  const data = { name, classKey, subclass, level, race, background, alignment, abilities, features, skills, equipment, hp, ac, initiative, speed, proficiency, spellData };
+  
+  characterCard.innerHTML = buildCharacterCard(data);
+  
+  // Switch view
+  generatorForm.style.display = 'none';
+  cardWrap.classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  
+  // Auto-expand features section
+  setTimeout(() => {
+    const featSec = document.getElementById('feat-section');
+    if (featSec) featSec.classList.add('expanded');
+  }, 100);
+  
+  showToast('✨ 人物卡已生成！');
+}
+
+// Random name generator
+const nameParts1 = ['艾', '贝', '塞', '德', '伊', '法', '盖', '海', '伊', '贾', '凯', '莱', '玛', '娜', '奥', '帕', '奎', '瑞', '莎', '塔', '乌', '维', '沃', '希', '伊', '泽', '阿', '布', '卡', '丹', '埃', '菲', '格', '赫', '艾', '乔', '金', '洛', '莫', '尼', '波', '罗', '索', '提', '文', '威', '赞'];
+const nameParts2 = ['尔文', '兰德', '莉亚', '娜拉', '里克', '斯特', '温德', '希尔', '亚斯', '迪安', '洛恩', '拉娜', '弥尔', '诺斯', '瑞安', '莎拉', '托尔', '维斯', '希恩', '伊丝', '泽尔', '班恩', '克莱', '多恩', '恩雅', '弗雷', '加德', '霍克', '伊芙', '詹恩', '凯尔', '洛丝', '玛尔', '尼斯', '奥拉', '帕斯', '奎尔', '瑞克', '瑟琳', '萨恩', '托尔', '薇拉'];
+
+function randomName(classKey) {
+  const n1 = nameParts1[Math.floor(Math.random() * nameParts1.length)];
+  const n2 = nameParts2[Math.floor(Math.random() * nameParts2.length)];
+  return n1 + n2;
+}
+
+// Random generation
+function randomGenerate() {
+  const classKeys = Object.keys(CLASS_DATA);
+  const randomClass = classKeys[Math.floor(Math.random() * classKeys.length)];
+  charClassEl.value = randomClass;
+  charClassEl.dispatchEvent(new Event('change'));
+  
+  const randomRace = RACES[Math.floor(Math.random() * RACES.length)];
+  charRaceEl.value = randomRace.name;
+  
+  const randomBg = BACKGROUNDS[Math.floor(Math.random() * BACKGROUNDS.length)];
+  charBgEl.value = randomBg.name;
+  
+  charNameEl.value = randomName(randomClass);
+  charLevelEl.value = Math.floor(Math.random() * 5) + 1;
+  charAlignEl.value = ['LG','NG','CG','LN','TN','CN'][Math.floor(Math.random() * 6)];
+  
+  generateCharacter();
+}
+
+// Back button
+backBtn.addEventListener('click', () => {
+  generatorForm.style.display = 'block';
+  cardWrap.classList.remove('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+
+// Share / Screenshot
+shareBtn.addEventListener('click', async () => {
+  try {
+    const { default: html2canvas } = await import('https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js');
+    const canvas = await html2canvas(characterCard, {
+      backgroundColor: null,
+      scale: 2,
+      useCORS: true
+    });
+    const link = document.createElement('a');
+    link.download = `DND_${charNameEl.value || 'character'}_card.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+    showToast('📸 人物卡已保存！');
+  } catch (e) {
+    // Fallback: just show the card
+    showToast('💡 长按截图保存人物卡');
+  }
+});
+
+// Generate button
+generateBtn.addEventListener('click', generateCharacter);
+randomBtn.addEventListener('click', randomGenerate);
+
+// Init
+populateClasses();
+populateRaces();
+populateBackgrounds();
+initTheme();
+
+// Copy share URL
+function copyShareUrl() {
+  const url = document.getElementById('shareUrl').textContent;
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(url).then(() => {
+      const btn = document.querySelector('.share-copy-btn');
+      btn.textContent = '已复制 ✓';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        btn.textContent = '复制链接';
+        btn.classList.remove('copied');
+      }, 2000);
+    }).catch(() => fallbackCopyText(url));
+  } else {
+    fallbackCopyText(url);
+  }
+}
+function copyTopUrl() {
+  const fullUrl = 'https://e943424cff044e47b1bc9fa1c25366ab.app.codebuddy.work';
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(fullUrl).then(() => {
+      const el = document.getElementById('topShareUrl');
+      const orig = el.textContent;
+      el.textContent = '已复制 ✓';
+      setTimeout(() => { el.textContent = orig; }, 1500);
+    }).catch(() => fallbackCopyText(fullUrl));
+  } else {
+    fallbackCopyText(fullUrl);
+  }
+}
+function fallbackCopyText(text) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed';
+  ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  ta.select();
+  document.execCommand('copy');
+  document.body.removeChild(ta);
+  const btn = document.querySelector('.share-copy-btn');
+  btn.textContent = '已复制 ✓';
+  btn.classList.add('copied');
+  setTimeout(() => {
+    btn.textContent = '复制链接';
+    btn.classList.remove('copied');
+  }, 2000);
+}
+
+// ============================================================
+// Collapsible Sections & Tooltip Logic
+// ============================================================
+
+// Toggle collapsible section
+function toggleSection(sectionId) {
+  const section = document.getElementById(sectionId);
+  if (!section) return;
+  section.classList.toggle('expanded');
+}
+
+// Toggle feature detail expansion
+function toggleFeatureDetail(el) {
+  // Close other open feature details in the same section
+  const parent = el.parentElement;
+  const siblings = parent.querySelectorAll('.feature-detail.open');
+  siblings.forEach(s => {
+    if (s !== el) s.classList.remove('open');
+  });
+  el.classList.toggle('open');
+}
+
+// Show equipment tooltip
+let equipTooltip = null;
+function showEquipTooltip(el) {
+  hideEquipTooltip();
+  const name = el.dataset.name || el.textContent;
+  const desc = el.dataset.desc || '';
+  if (!desc) return;
+  const tip = document.createElement('div');
+  tip.className = 'equip-tooltip';
+  tip.id = 'equip-tooltip';
+  tip.innerHTML = `<strong>${name}</strong><br>${desc}`;
+  document.body.appendChild(tip);
+  requestAnimationFrame(() => tip.classList.add('show'));
+  equipTooltip = tip;
+  setTimeout(hideEquipTooltip, 3000);
+}
+function hideEquipTooltip() {
+  const tip = document.getElementById('equip-tooltip');
+  if (tip) tip.remove();
+  equipTooltip = null;
+}
+
+// ============================================================
+// PWA: Service Worker Registration + Install Prompt
+// ============================================================
+
+// Register Service Worker
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js')
+      .then(reg => console.log('⚔️ SW 注册成功:', reg.scope))
+      .catch(err => console.warn('SW 注册失败:', err));
+  });
+}
+
+// PWA Install Prompt
+let deferredPrompt = null;
+const installBanner = document.getElementById('installBanner');
+const iosGuide = document.getElementById('iosGuide');
+const installBtn = document.getElementById('installBtn');
+const dismissBanner = document.getElementById('dismissBanner');
+const dismissIos = document.getElementById('dismissIos');
+
+// Detect iOS (no beforeinstallprompt support)
+function isIOS() {
+  return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+}
+
+// Show iOS install guide
+if (isIOS()) {
+  // Only show if not dismissed before
+  if (!localStorage.getItem('ios-guide-dismissed')) {
+    iosGuide.style.display = 'block';
+  }
+}
+dismissIos.addEventListener('click', () => {
+  iosGuide.style.display = 'none';
+  localStorage.setItem('ios-guide-dismissed', '1');
+});
+
+// Chrome/Edge: capture the install prompt
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  // Don't show if already installed or dismissed
+  if (!window.matchMedia('(display-mode: standalone)').matches && !localStorage.getItem('install-dismissed')) {
+    installBanner.style.display = 'block';
+    installBanner.style.padding = '10px 16px';
+    installBanner.style.background = 'var(--parchment)';
+    installBanner.style.borderBottom = '1px solid var(--border)';
+    installBanner.style.position = 'sticky';
+    installBanner.style.top = '0';
+    installBanner.style.zIndex = '999';
+  }
+});
+
+// Install button click
+installBtn.addEventListener('click', async () => {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  const { outcome } = await deferredPrompt.userChoice;
+  if (outcome === 'accepted') console.log('✅ 用户安装了 PWA');
+  deferredPrompt = null;
+  installBanner.style.display = 'none';
+});
+
+// Dismiss install banner
+dismissBanner.addEventListener('click', () => {
+  installBanner.style.display = 'none';
+  localStorage.setItem('install-dismissed', '1');
+});
+
+// Detect if already installed (standalone mode)
+if (window.matchMedia('(display-mode: standalone)').matches) {
+  console.log('⚔️ 正在 PWA 独立模式运行');
+  installBanner.style.display = 'none';
+}
+
+console.log('⚔️ D&D 5E 人物卡生成器已就绪 | 基于 5E 不全书数据');
+console.log('💡 支持 14 个职业、100+ 子职业、多种族与背景');
+</script>
+</body>
+</html>
