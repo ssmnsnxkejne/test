@@ -7,7 +7,7 @@
 
 <!-- PWA Meta -->
 <meta name="description" content="基于 5E 不全书规则，输入姓名职业一键生成精美 D&D 5E 人物卡">
-<meta name="theme-color" content="#8b4513">
+<meta name="theme-color" content="#1c1712">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="人物卡生成器">
@@ -15,54 +15,104 @@
 <meta name="format-detection" content="telephone=no">
 
 <!-- Apple Touch Icon (inline SVG via data URI) -->
-<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' fill='%238b4513' rx='32'/%3E%3Ctext x='96' y='132' font-size='120' text-anchor='middle' fill='%23f5f0e8' font-family='serif'%3E⚔%3C/text%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' fill='%231c1712' rx='32'/%3E%3Ctext x='96' y='132' font-size='120' text-anchor='middle' fill='%23c9a84c' font-family='serif'%3E⚔%3C/text%3E%3C/svg%3E">
 
 <!-- Apple Splash Screen (uses theme-color as background) -->
 <meta name="apple-mobile-web-app-title" content="人物卡生成器">
 
+<!-- DND Fantasy Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700;800;900&family=Cinzel+Decorative:wght@400;700;900&family=IM+Fell+English:ital@0;1&family=MedievalSharp&family=Philosopher:wght@400;700&display=swap" rel="stylesheet">
+
 <!-- PWA Manifest -->
 <link rel="manifest" href="manifest.json">
 <style>
+/* ===== DND Fantasy Design System ===== */
 :root {
-  --bg: #f5f0e8;
-  --bg-card: #fffef9;
-  --bg-input: #faf7f0;
-  --text: #2c2416;
-  --text-secondary: #6b5e4a;
-  --border: #d4c5a9;
-  --accent: #8b4513;
-  --accent-light: #a0522d;
+  /* Core Palette — Deep Medieval Fantasy */
+  --bg: #1c1712;
+  --bg-card: #2a2218;
+  --bg-input: #342b1f;
+  --text: #e8dcc8;
+  --text-secondary: #b8a882;
+  --text-dim: #8a7d65;
+  --border: #5a4a32;
+  --border-light: #6b5a3e;
+
+  /* Primary — Blood Red / Crimson */
+  --accent: #9b2335;
+  --accent-light: #c4334d;
+  --accent-dark: #6e1826;
+  --accent-glow: rgba(155, 35, 53, 0.3);
+
+  /* Gold — Royal Ornaments */
   --gold: #c9a84c;
   --gold-light: #e8d48b;
-  --parchment: #f5e6c8;
-  --parchment-dark: #e8d5a3;
-  --danger: #8b1a1a;
-  --success: #2d6a2d;
-  --magic: #6a0dad;
-  --magic-light: #9b59b6;
-  --shadow: 0 4px 20px rgba(0,0,0,0.08);
-  --shadow-lg: 0 12px 40px rgba(0,0,0,0.12);
-  --radius: 12px;
-  --radius-lg: 20px;
-  --font-title: 'Georgia', 'Times New Roman', serif;
-  --font-body: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --gold-dark: #a08530;
+  --gold-glow: rgba(201, 168, 76, 0.25);
+
+  /* Parchment — Aged Paper */
+  --parchment: #3d3222;
+  --parchment-dark: #2a2218;
+  --parchment-light: #4a3e2a;
+
+  /* Semantic Colors */
+  --danger: #9b2335;
+  --success: #3d7a3d;
+  --magic: #5a2d82;
+  --magic-light: #8a5cb8;
+
+  /* Shadows — Deep & Dramatic */
+  --shadow: 0 4px 20px rgba(0,0,0,0.35);
+  --shadow-lg: 0 12px 40px rgba(0,0,0,0.5);
+  --shadow-glow: 0 0 20px var(--accent-glow);
+  --shadow-gold-glow: 0 0 15px var(--gold-glow);
+
+  /* Radii — Slightly sharper for medieval feel */
+  --radius: 6px;
+  --radius-lg: 10px;
+
+  /* Typography — Fantasy Fonts */
+  --font-title: 'Cinzel', 'Georgia', serif;
+  --font-display: 'Cinzel Decorative', 'Cinzel', serif;
+  --font-body: 'Philosopher', 'IM Fell English', Georgia, serif;
+  --font-accent: 'MedievalSharp', cursive;
 }
 
-[data-theme="dark"] {
-  --bg: #1a1410;
-  --bg-card: #231e18;
-  --bg-input: #2a231b;
-  --text: #e8dcc8;
-  --text-secondary: #a89878;
-  --border: #4a3d2a;
-  --accent: #c9a84c;
-  --accent-light: #e8d48b;
-  --gold: #d4b85c;
-  --gold-light: #f0e0a0;
-  --parchment: #2a231b;
-  --parchment-dark: #1a1410;
-  --shadow: 0 4px 20px rgba(0,0,0,0.3);
-  --shadow-lg: 0 12px 40px rgba(0,0,0,0.5);
+[data-theme="light"] {
+  --bg: #e8dcc4;
+  --bg-card: #f5eed8;
+  --bg-input: #ede4c8;
+  --text: #2c1e10;
+  --text-secondary: #5c4a30;
+  --text-dim: #8a7d65;
+  --border: #c4a868;
+  --border-light: #d4bc82;
+
+  --accent: #8b1a2b;
+  --accent-light: #a82840;
+  --accent-dark: #6e1420;
+  --accent-glow: rgba(139, 26, 43, 0.2);
+
+  --gold: #b8982e;
+  --gold-light: #d4b84e;
+  --gold-dark: #8a7020;
+  --gold-glow: rgba(184, 152, 46, 0.2);
+
+  --parchment: #e0d0a8;
+  --parchment-dark: #c8b888;
+  --parchment-light: #ece0c0;
+
+  --danger: #8b1a2b;
+  --success: #2d6a2d;
+  --magic: #5a2d82;
+  --magic-light: #8a5cb8;
+
+  --shadow: 0 4px 20px rgba(60,40,10,0.15);
+  --shadow-lg: 0 12px 40px rgba(60,40,10,0.2);
+  --shadow-glow: 0 0 20px rgba(139, 26, 43, 0.15);
+  --shadow-gold-glow: 0 0 15px rgba(184, 152, 46, 0.2);
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -76,12 +126,38 @@ body {
   padding-top: env(safe-area-inset-top);
   padding-bottom: env(safe-area-inset-bottom);
   background-image:
-    radial-gradient(ellipse at 20% 20%, rgba(139,69,19,0.03) 0%, transparent 50%),
-    radial-gradient(ellipse at 80% 80%, rgba(201,168,76,0.04) 0%, transparent 50%);
+    radial-gradient(ellipse at 50% 0%, rgba(155,35,53,0.06) 0%, transparent 60%),
+    radial-gradient(ellipse at 20% 80%, rgba(201,168,76,0.04) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 60%, rgba(90,45,130,0.03) 0%, transparent 40%);
   transition: background 0.3s, color 0.3s;
+  position: relative;
 }
 
-/* Theme Toggle */
+/* Parchment noise texture overlay */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.03;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Vignette overlay for dramatic effect */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background: radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.3) 100%);
+}
+
+/* Ensure content above overlays */
+body > * { position: relative; z-index: 1; }
+
+/* Theme Toggle — Runestone Style */
 .theme-toggle-wrap {
   position: fixed;
   top: 16px;
@@ -89,42 +165,67 @@ body {
   z-index: 1000;
 }
 .theme-toggle {
-  width: 44px; height: 44px;
+  width: 48px; height: 48px;
   border-radius: 50%;
-  border: 2px solid var(--border);
-  background: var(--bg-card);
+  border: 2px solid var(--gold);
+  background: radial-gradient(circle at 40% 35%, var(--bg-card), var(--bg-input));
   cursor: pointer;
   font-size: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: var(--shadow);
+  box-shadow: var(--shadow), 0 0 12px var(--gold-glow);
 }
 .theme-toggle:hover {
-  transform: scale(1.1);
-  border-color: var(--accent);
+  transform: scale(1.1) rotate(15deg);
+  border-color: var(--gold-light);
+  box-shadow: var(--shadow), 0 0 20px var(--gold-glow);
 }
 .theme-toggle:active { transform: scale(0.95); }
 
-/* Header */
+/* Header — Grand Fantasy Title */
 .header {
   text-align: center;
-  padding: 48px 20px 32px;
+  padding: 56px 20px 36px;
+  position: relative;
+}
+.header::before {
+  content: '⚜';
+  display: block;
+  font-size: 28px;
+  color: var(--gold);
+  margin-bottom: 12px;
+  text-shadow: 0 0 15px var(--gold-glow);
+  animation: pulseGold 3s ease-in-out infinite;
+}
+@keyframes pulseGold {
+  0%, 100% { opacity: 0.7; text-shadow: 0 0 10px var(--gold-glow); }
+  50% { opacity: 1; text-shadow: 0 0 25px var(--gold-glow), 0 0 40px var(--gold-glow); }
 }
 .header-logo {
-  font-family: var(--font-title);
-  font-size: 32px;
-  font-weight: bold;
-  color: var(--accent);
-  letter-spacing: 2px;
+  font-family: var(--font-display);
+  font-size: 30px;
+  font-weight: 700;
+  color: var(--gold);
+  letter-spacing: 4px;
   margin-bottom: 8px;
-  text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  text-shadow: 0 2px 4px rgba(0,0,0,0.4), 0 0 20px var(--gold-glow);
+  text-transform: uppercase;
 }
 .header-sub {
-  font-size: 14px;
+  font-family: var(--font-accent);
+  font-size: 15px;
   color: var(--text-secondary);
-  letter-spacing: 1px;
+  letter-spacing: 2px;
+}
+.header::after {
+  content: '';
+  display: block;
+  width: 200px;
+  height: 2px;
+  margin: 16px auto 0;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
 }
 .header-share {
   display: flex;
@@ -142,7 +243,7 @@ body {
   padding: 0 16px 60px;
 }
 
-/* Section */
+/* Section — Parchment Scroll Style */
 .section {
   background: var(--bg-card);
   border-radius: var(--radius-lg);
@@ -154,43 +255,59 @@ body {
   position: relative;
   overflow: hidden;
 }
+/* Ornate top accent bar */
 .section::before {
   content: '';
   position: absolute;
   top: 0; left: 0; right: 0;
   height: 3px;
-  background: linear-gradient(90deg, var(--accent), var(--gold), var(--accent));
-  opacity: 0.6;
+  background: linear-gradient(90deg, transparent 5%, var(--gold) 20%, var(--accent) 50%, var(--gold) 80%, transparent 95%);
+}
+/* Corner ornaments */
+.section::after {
+  content: '';
+  position: absolute;
+  top: 6px; right: 8px;
+  width: 20px; height: 20px;
+  border-top: 2px solid var(--gold);
+  border-right: 2px solid var(--gold);
+  opacity: 0.4;
+  border-radius: 0 4px 0 0;
 }
 .section-title {
   font-family: var(--font-title);
-  font-size: 18px;
-  color: var(--accent);
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--gold);
   margin-bottom: 16px;
   display: flex;
   align-items: center;
   gap: 8px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
 }
 .section-title .icon { font-size: 22px; }
 
-/* Form */
+/* Form — Ink on Parchment Style */
 .form-group {
   margin-bottom: 14px;
 }
 .form-label {
   display: block;
-  font-size: 13px;
+  font-family: var(--font-title);
+  font-size: 12px;
   font-weight: 600;
-  color: var(--text-secondary);
+  color: var(--gold);
   margin-bottom: 6px;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 2px;
 }
 .form-input, .form-select {
   width: 100%;
   padding: 12px 16px;
   background: var(--bg-input);
-  border: 2px solid var(--border);
+  border: 1px solid var(--border);
+  border-bottom: 2px solid var(--border-light);
   border-radius: var(--radius);
   font-size: 16px;
   color: var(--text);
@@ -201,23 +318,29 @@ body {
 }
 .form-input:focus, .form-select:focus {
   outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(139,69,19,0.1);
+  border-color: var(--gold);
+  border-bottom-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--gold-glow), 0 2px 8px rgba(0,0,0,0.2);
+}
+.form-input::placeholder {
+  color: var(--text-dim);
+  font-style: italic;
 }
 .form-select {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238b4513' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23c9a84c' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 16px center;
   padding-right: 40px;
 }
 .form-hint {
   font-size: 12px;
-  color: var(--text-secondary);
+  color: var(--text-dim);
   margin-top: 4px;
   font-style: italic;
+  font-family: var(--font-accent);
 }
 
-/* Buttons */
+/* Buttons — Wax Seal & Scroll Style */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -228,96 +351,120 @@ body {
   border-radius: var(--radius);
   font-size: 16px;
   font-weight: 600;
+  font-family: var(--font-title);
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  font-family: var(--font-body);
-  letter-spacing: 0.5px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
   position: relative;
   overflow: hidden;
 }
+.btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 50%);
+  pointer-events: none;
+}
 .btn-primary {
   width: 100%;
-  background: linear-gradient(135deg, var(--accent), var(--accent-light));
-  color: #fff;
-  box-shadow: 0 4px 15px rgba(139,69,19,0.3);
-  font-size: 18px;
+  background: linear-gradient(135deg, var(--accent-dark), var(--accent), var(--accent-light));
+  color: #f5f0e8;
+  box-shadow: var(--shadow), 0 0 20px var(--accent-glow);
+  font-size: 17px;
   padding: 16px 28px;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-bottom: 3px solid var(--accent-dark);
 }
 .btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(139,69,19,0.4);
+  box-shadow: var(--shadow-lg), 0 0 30px var(--accent-glow);
+  filter: brightness(1.1);
 }
 .btn-primary:active {
-  transform: translateY(0);
+  transform: translateY(1px);
+  border-bottom-width: 1px;
 }
 .btn-outline {
   width: 100%;
   background: transparent;
-  border: 2px solid var(--accent);
-  color: var(--accent);
+  border: 1px solid var(--gold);
+  color: var(--gold);
   margin-top: 12px;
 }
 .btn-outline:hover {
-  background: rgba(139,69,19,0.06);
+  background: rgba(201,168,76,0.08);
+  box-shadow: 0 0 15px var(--gold-glow);
 }
 
-/* Character Card */
+/* Character Card — Ancient Tome Style */
 .character-card-wrap {
   display: none;
 }
 .character-card-wrap.active {
   display: block;
-  animation: cardAppear 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: cardAppear 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @keyframes cardAppear {
-  from { opacity: 0; transform: translateY(30px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: translateY(30px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 .character-card {
   background: var(--bg-card);
   border-radius: var(--radius-lg);
   border: 2px solid var(--border);
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--shadow-lg), 0 0 30px rgba(0,0,0,0.3);
   overflow: hidden;
   position: relative;
 }
 
-/* Card Header */
+/* Card Header — Heraldry Banner */
 .card-header {
-  background: linear-gradient(135deg, var(--parchment), var(--parchment-dark));
-  padding: 24px 20px;
+  background: linear-gradient(135deg, var(--parchment-dark), var(--parchment), var(--parchment-dark));
+  padding: 28px 20px;
   text-align: center;
   border-bottom: 2px solid var(--border);
   position: relative;
 }
+.card-header::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--accent-dark), var(--gold), var(--accent), var(--gold), var(--accent-dark));
+}
 .card-header::after {
   content: '';
   position: absolute;
-  bottom: -1px; left: 10%; right: 10%;
+  bottom: -1px; left: 8%; right: 8%;
   height: 1px;
   background: linear-gradient(90deg, transparent, var(--gold), transparent);
 }
 .card-class-icon {
-  font-size: 48px;
+  font-size: 52px;
   margin-bottom: 8px;
   display: block;
   animation: float 3s ease-in-out infinite;
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
 }
 @keyframes float {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-6px); }
 }
 .card-name {
-  font-family: var(--font-title);
-  font-size: 28px;
-  font-weight: bold;
-  color: var(--accent);
-  letter-spacing: 2px;
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--gold);
+  letter-spacing: 3px;
   margin-bottom: 4px;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.4), 0 0 15px var(--gold-glow);
+  text-transform: uppercase;
 }
 .card-subtitle {
+  font-family: var(--font-accent);
   font-size: 14px;
   color: var(--text-secondary);
   letter-spacing: 1px;
@@ -328,47 +475,50 @@ body {
   padding: 20px;
 }
 
-/* Ability Scores */
+/* Ability Scores — Stone Tablet Style */
 .ability-grid {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
-  gap: 8px;
+  gap: 6px;
   margin-bottom: 20px;
 }
 .ability-item {
   text-align: center;
   padding: 10px 4px;
-  background: var(--bg-input);
+  background: linear-gradient(180deg, var(--bg-input), var(--bg));
   border-radius: var(--radius);
   border: 1px solid var(--border);
   transition: all 0.3s;
+  position: relative;
 }
 .ability-item:hover {
   transform: translateY(-2px);
-  border-color: var(--accent);
-  box-shadow: var(--shadow);
+  border-color: var(--gold);
+  box-shadow: var(--shadow), 0 0 10px var(--gold-glow);
 }
 .ability-name {
-  font-size: 11px;
-  color: var(--text-secondary);
+  font-family: var(--font-title);
+  font-size: 10px;
+  color: var(--gold);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 1px;
   margin-bottom: 4px;
 }
 .ability-score {
-  font-family: var(--font-title);
-  font-size: 22px;
-  font-weight: bold;
-  color: var(--accent);
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
 }
 .ability-mod {
   font-size: 11px;
   font-weight: 600;
+  font-family: var(--font-title);
 }
-.ability-mod.positive { color: var(--success); }
-.ability-mod.negative { color: var(--danger); }
+.ability-mod.positive { color: var(--gold-light); }
+.ability-mod.negative { color: var(--accent-light); }
 
-/* Stats Row */
+/* Stats Row — Rune Stone Style */
 .stats-row {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -378,22 +528,24 @@ body {
 .stat-item {
   text-align: center;
   padding: 14px 8px;
-  background: var(--bg-input);
+  background: linear-gradient(180deg, var(--bg-input), var(--bg));
   border-radius: var(--radius);
   border: 1px solid var(--border);
+  position: relative;
 }
 .stat-label {
-  font-size: 11px;
-  color: var(--text-secondary);
+  font-family: var(--font-title);
+  font-size: 10px;
+  color: var(--gold);
   text-transform: uppercase;
   letter-spacing: 1px;
   margin-bottom: 4px;
 }
 .stat-value {
-  font-family: var(--font-title);
+  font-family: var(--font-display);
   font-size: 20px;
-  font-weight: bold;
-  color: var(--accent);
+  font-weight: 700;
+  color: var(--text);
 }
 
 /* Info Grid */
@@ -408,11 +560,13 @@ body {
   background: var(--bg-input);
   border-radius: var(--radius);
   border: 1px solid var(--border);
+  border-left: 3px solid var(--gold);
 }
 .info-item.full { grid-column: 1 / -1; }
 .info-label {
-  font-size: 11px;
-  color: var(--text-secondary);
+  font-family: var(--font-title);
+  font-size: 10px;
+  color: var(--gold);
   text-transform: uppercase;
   letter-spacing: 1px;
   margin-bottom: 4px;
@@ -423,17 +577,19 @@ body {
   color: var(--text);
 }
 
-/* Skills */
+/* Skills — Parchment List Style */
 .skills-section {
   margin-bottom: 20px;
 }
 .skills-title {
   font-family: var(--font-title);
-  font-size: 16px;
-  color: var(--accent);
+  font-size: 15px;
+  color: var(--gold);
   margin-bottom: 10px;
   padding-bottom: 8px;
   border-bottom: 1px solid var(--border);
+  letter-spacing: 1px;
+  text-transform: uppercase;
 }
 .skills-grid {
   display: grid;
@@ -446,22 +602,24 @@ body {
   gap: 6px;
   padding: 8px 12px;
   background: var(--bg-input);
-  border-radius: 8px;
+  border-radius: 4px;
   font-size: 13px;
   border: 1px solid var(--border);
 }
 .skill-tag .skill-bonus {
   font-weight: bold;
-  color: var(--accent);
+  color: var(--gold);
   min-width: 24px;
   text-align: center;
+  font-family: var(--font-title);
 }
 .skill-tag.proficient {
   border-color: var(--gold);
   background: rgba(201,168,76,0.08);
+  box-shadow: inset 0 0 8px var(--gold-glow);
 }
 
-/* Features */
+/* Features — Ancient Scroll Entries */
 .features-section {
   margin-bottom: 20px;
 }
@@ -474,14 +632,14 @@ body {
 .feature-item {
   padding: 10px 14px;
   background: var(--bg-input);
-  border-radius: 8px;
+  border-radius: 4px;
   font-size: 13px;
   border: 1px solid var(--border);
   border-left: 3px solid var(--accent);
   line-height: 1.5;
 }
 
-/* Equipment */
+/* Equipment — Inventory Tags */
 .equip-list {
   display: flex;
   flex-wrap: wrap;
@@ -495,34 +653,38 @@ body {
   border: 1px solid var(--border);
 }
 
-/* Footer */
+/* Footer — Tome Colophon */
 .card-footer {
   padding: 16px 20px;
   border-top: 1px solid var(--border);
   text-align: center;
+  background: linear-gradient(180deg, transparent, rgba(0,0,0,0.05));
 }
 .card-footer-text {
+  font-family: var(--font-accent);
   font-size: 11px;
-  color: var(--text-secondary);
+  color: var(--text-dim);
   letter-spacing: 1px;
 }
 
-/* Toast */
+/* Toast — Magic Notification */
 .toast {
   position: fixed;
   bottom: 20px;
   left: 50%;
   transform: translateX(-50%) translateY(100px);
-  background: var(--accent);
-  color: #fff;
+  background: linear-gradient(135deg, var(--accent-dark), var(--accent));
+  color: #f5f0e8;
   padding: 12px 24px;
   border-radius: 50px;
   font-size: 14px;
   font-weight: 600;
-  box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+  font-family: var(--font-title);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.3), 0 0 20px var(--accent-glow);
   z-index: 2000;
   transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   white-space: nowrap;
+  border: 1px solid rgba(255,255,255,0.1);
 }
 .toast.show { transform: translateX(-50%) translateY(0); }
 
@@ -539,7 +701,7 @@ body {
   body { background: white; }
 }
 
-/* Spell Display Styles */
+/* Spell Display Styles — Arcane Grimoire */
 .spell-slots {
   margin-bottom: 12px;
   padding: 12px;
@@ -554,12 +716,14 @@ body {
 }
 .spell-slot-badge {
   padding: 5px 12px;
-  background: var(--accent);
-  color: #fff;
+  background: linear-gradient(135deg, var(--accent-dark), var(--accent));
+  color: #f5f0e8;
   border-radius: 20px;
   font-size: 12px;
   font-weight: 600;
+  font-family: var(--font-title);
   white-space: nowrap;
+  border: 1px solid rgba(255,255,255,0.1);
 }
 .spells-list {
   display: flex;
@@ -571,16 +735,16 @@ body {
 .spell-item {
   padding: 10px 14px;
   background: var(--bg-input);
-  border-radius: 8px;
+  border-radius: 4px;
   border: 1px solid var(--border);
   border-left: 3px solid var(--accent);
   transition: all 0.2s;
 }
 .spell-item.concentration {
-  border-left-color: #6a0dad;
+  border-left-color: var(--magic);
 }
 .spell-item.ritual {
-  border-left-color: #2d6a2d;
+  border-left-color: var(--success);
 }
 .spell-header {
   display: flex;
@@ -591,33 +755,36 @@ body {
 }
 .spell-level-badge {
   padding: 2px 8px;
-  background: var(--accent);
-  color: #fff;
+  background: linear-gradient(135deg, var(--accent-dark), var(--accent));
+  color: #f5f0e8;
   border-radius: 4px;
   font-size: 11px;
   font-weight: 600;
+  font-family: var(--font-title);
   white-space: nowrap;
 }
 .spell-item.concentration .spell-level-badge {
-  background: #6a0dad;
+  background: linear-gradient(135deg, #3a1a5c, var(--magic));
 }
 .spell-item.ritual .spell-level-badge {
-  background: #2d6a2d;
+  background: linear-gradient(135deg, #1a3a1a, var(--success));
 }
 .spell-name {
   font-weight: 700;
   font-size: 14px;
   color: var(--text);
+  font-family: var(--font-title);
   flex: 1;
   min-width: 80px;
 }
 .spell-school {
   font-size: 11px;
-  color: var(--text-secondary);
-  background: rgba(139,69,19,0.1);
+  color: var(--gold);
+  background: rgba(201,168,76,0.1);
   padding: 2px 6px;
   border-radius: 4px;
   white-space: nowrap;
+  font-family: var(--font-accent);
 }
 .spell-tag {
   display: inline-block;
@@ -626,18 +793,19 @@ body {
   font-size: 10px;
   font-weight: 700;
   line-height: 1.4;
+  font-family: var(--font-title);
 }
 .conc-tag {
-  background: #6a0dad;
-  color: #fff;
+  background: var(--magic);
+  color: #f5f0e8;
 }
 .rit-tag {
-  background: #2d6a2d;
-  color: #fff;
+  background: var(--success);
+  color: #f5f0e8;
 }
 .spell-info {
   font-size: 11px;
-  color: var(--text-secondary);
+  color: var(--text-dim);
   margin-bottom: 4px;
 }
 .spell-meta {
@@ -649,12 +817,12 @@ body {
   line-height: 1.5;
 }
 
-[data-theme="dark"] .spell-school {
-  background: rgba(201,168,76,0.15);
-  color: #c9a84c;
+[data-theme="light"] .spell-school {
+  background: rgba(184,152,46,0.15);
+  color: var(--gold-dark);
 }
 
-/* ===== Collapsible Sections ===== */
+/* ===== Collapsible Sections — Scroll Unrolling ===== */
 .collapsible-section {
   margin-bottom: 14px;
   border-radius: var(--radius);
@@ -663,14 +831,15 @@ body {
   transition: all 0.3s;
 }
 .collapsible-section.expanded {
-  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+  border-color: var(--border-light);
 }
 .collapsible-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 12px 14px;
-  background: var(--bg-input);
+  background: linear-gradient(135deg, var(--bg-input), var(--parchment));
   cursor: pointer;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
@@ -683,21 +852,24 @@ body {
   font-weight: 700;
   font-size: 14px;
   color: var(--text);
+  font-family: var(--font-title);
   display: flex;
   align-items: center;
   gap: 6px;
+  letter-spacing: 0.5px;
 }
 .collapsible-header .section-badge {
   font-size: 11px;
-  background: var(--accent);
-  color: #fff;
+  background: linear-gradient(135deg, var(--accent-dark), var(--accent));
+  color: #f5f0e8;
   padding: 2px 8px;
   border-radius: 10px;
   font-weight: 600;
+  font-family: var(--font-title);
 }
 .collapsible-arrow {
   font-size: 12px;
-  color: var(--text-secondary);
+  color: var(--gold);
   transition: transform 0.3s ease;
   flex-shrink: 0;
 }
@@ -716,12 +888,12 @@ body {
   padding: 0 14px 14px;
 }
 
-/* Feature detail items */
+/* Feature detail items — Tome Entries */
 .feature-detail {
   padding: 10px 12px;
   margin-bottom: 6px;
   background: var(--bg);
-  border-radius: 8px;
+  border-radius: 4px;
   border-left: 3px solid var(--accent);
   cursor: pointer;
   transition: all 0.2s;
@@ -738,22 +910,24 @@ body {
   font-size: 13px;
 }
 .feature-detail .fd-level {
-  background: var(--accent);
-  color: #fff;
+  background: linear-gradient(135deg, var(--accent-dark), var(--accent));
+  color: #f5f0e8;
   font-size: 10px;
   padding: 1px 6px;
   border-radius: 4px;
   font-weight: 600;
+  font-family: var(--font-title);
   white-space: nowrap;
 }
 .feature-detail .fd-name {
   font-weight: 700;
   color: var(--text);
   flex: 1;
+  font-family: var(--font-title);
 }
 .feature-detail .fd-expand {
   font-size: 10px;
-  color: var(--text-secondary);
+  color: var(--text-dim);
   transition: transform 0.3s;
 }
 .feature-detail.open .fd-expand {
@@ -766,13 +940,14 @@ body {
   font-size: 12px;
   color: var(--text-secondary);
   line-height: 1.6;
+  font-family: var(--font-body);
 }
 .feature-detail.open .feature-detail-desc {
   max-height: 800px;
   margin-top: 8px;
 }
 
-/* Equipment detail items */
+/* Equipment detail items — Inventory Slots */
 .equip-detail {
   display: inline-flex;
   align-items: center;
@@ -791,6 +966,7 @@ body {
 .equip-detail:active {
   transform: scale(0.95);
   background: var(--parchment);
+  border-color: var(--gold);
 }
 .equip-detail .ed-icon {
   font-size: 11px;
@@ -801,16 +977,17 @@ body {
   bottom: 20px;
   left: 50%;
   transform: translateX(-50%);
-  background: var(--text);
-  color: var(--bg);
+  background: var(--bg-card);
+  color: var(--text);
   padding: 10px 18px;
-  border-radius: 12px;
+  border-radius: var(--radius);
   font-size: 13px;
   line-height: 1.5;
   z-index: 1000;
   max-width: 90vw;
   text-align: center;
-  box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+  border: 1px solid var(--gold);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.4), 0 0 15px var(--gold-glow);
   animation: tooltipIn 0.25s ease;
 }
 .equip-tooltip.show {
@@ -821,7 +998,7 @@ body {
   to { opacity: 1; transform: translateX(-50%) translateY(0); }
 }
 
-/* Share link area */
+/* Share link area — Message Scroll */
 .share-section {
   margin-top: 20px;
   padding: 14px 16px;
@@ -833,8 +1010,11 @@ body {
 .share-section .share-title {
   font-size: 13px;
   font-weight: 700;
-  color: var(--text);
+  color: var(--gold);
   margin-bottom: 8px;
+  font-family: var(--font-title);
+  letter-spacing: 1px;
+  text-transform: uppercase;
 }
 .share-url-box {
   display: flex;
@@ -842,13 +1022,13 @@ body {
   gap: 6px;
   background: var(--bg);
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 4px;
   padding: 6px;
 }
 .share-url-text {
   flex: 1;
   font-size: 11px;
-  color: var(--text-secondary);
+  color: var(--text-dim);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -857,26 +1037,29 @@ body {
 }
 .share-copy-btn {
   padding: 6px 14px;
-  background: var(--accent);
-  color: #fff;
+  background: linear-gradient(135deg, var(--accent-dark), var(--accent));
+  color: #f5f0e8;
   border: none;
-  border-radius: 6px;
+  border-radius: 4px;
   font-size: 12px;
   font-weight: 600;
+  font-family: var(--font-title);
   cursor: pointer;
   white-space: nowrap;
-  transition: background 0.2s;
+  transition: all 0.2s;
+  letter-spacing: 0.5px;
 }
 .share-copy-btn:active {
   background: var(--accent-light);
 }
 .share-copy-btn.copied {
-  background: var(--success);
+  background: linear-gradient(135deg, #1a3a1a, var(--success));
 }
 
-[data-theme="dark"] .equip-tooltip {
-  background: #f5f0e8;
-  color: #2c2416;
+[data-theme="light"] .equip-tooltip {
+  background: #2a2218;
+  color: #e8dcc8;
+  border-color: var(--gold);
 }
 </style>
 </head>
@@ -895,7 +1078,7 @@ body {
   <div class="header-sub">D&D 5E · 基于 5E 不全书</div>
   <div class="header-share" style="margin-top:8px;display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;">
     <span style="font-size:11px;color:var(--text-secondary);">📱 手机访问：</span>
-    <span id="topShareUrl" style="font-size:11px;color:var(--accent);background:var(--bg-input);padding:3px 8px;border-radius:6px;cursor:pointer;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" onclick="copyTopUrl()" title="点击复制链接">e943424c...b.app.codebuddy.work</span>
+    <span id="topShareUrl" style="font-size:11px;color:var(--gold);background:var(--bg-input);padding:3px 8px;border-radius:4px;cursor:pointer;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;border:1px solid var(--border);" onclick="copyTopUrl()" title="点击复制链接">e943424c...b.app.codebuddy.work</span>
   </div>
 </header>
 
@@ -903,7 +1086,7 @@ body {
 <div id="installBanner" style="display:none;">
   <div style="display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;">
     <span style="font-size:15px;">📲 将此应用安装到手机主屏幕</span>
-    <button id="installBtn" style="background:var(--accent);color:#fff;border:none;padding:8px 20px;border-radius:20px;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap;">立即安装</button>
+    <button id="installBtn" style="background:linear-gradient(135deg,var(--accent-dark),var(--accent));color:#f5f0e8;border:1px solid rgba(255,255,255,0.1);padding:8px 20px;border-radius:20px;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:var(--font-title);">立即安装</button>
     <button id="dismissBanner" style="background:none;border:none;color:var(--text-secondary);font-size:18px;cursor:pointer;padding:4px 8px;">✕</button>
   </div>
 </div>
@@ -2267,12 +2450,12 @@ function showToast(msg) {
 
 // Theme Toggle
 function initTheme() {
-  const saved = localStorage.getItem('dnd-theme') || 'light';
+  const saved = localStorage.getItem('dnd-theme') || 'dark';
   document.documentElement.setAttribute('data-theme', saved);
   themeToggle.textContent = saved === 'dark' ? '☀️' : '🌙';
 }
 themeToggle.addEventListener('click', () => {
-  const current = document.documentElement.getAttribute('data-theme');
+  const current = document.documentElement.getAttribute('data-theme') || 'dark';
   const next = current === 'dark' ? 'light' : 'dark';
   document.documentElement.setAttribute('data-theme', next);
   themeToggle.textContent = next === 'dark' ? '☀️' : '🌙';
